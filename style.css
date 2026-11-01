@@ -232,7 +232,7 @@ body{
 .hospital-register-card{ max-width: 500px; }
 .hospital-register-card h2{ margin-bottom: 8px; }
 .hospital-register-card label{ margin-top: 16px; }
-.hospital-registration-map-box{
+.hospital-map-picker-btn{width:100%;margin-top:12px;padding:11px 14px;border:1px solid rgba(138,219,195,0.5);border-radius:8px;background:rgba(138,219,195,0.08);color:var(--off-white);font:inherit;cursor:pointer;} .hospital-map-picker-btn:hover{background:rgba(138,219,195,0.16);} .hospital-registration-map-box{
   height:auto;
   padding:12px;
 }
