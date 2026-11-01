@@ -2,28 +2,28 @@ services:
   - type: web
     name: roadrescue
     runtime: node
-    plan: starter
+    plan: free
     buildCommand: npm ci --omit=dev
     startCommand: npm start
     healthCheckPath: /api/health
-    disk:
-      name: roadrescue-data
-      mountPath: /var/data
-      sizeGB: 1
+
+
+
+
     envVars:
       - key: NODE_ENV
         value: production
       - key: NODE_VERSION
         value: 22.20.0
-      - key: ROADRESCUE_DATABASE
-        value: /var/data/roadrescue.sqlite
-      - key: HOSPITALS_FILE
-        value: /var/data/hospitals.json
-      - key: USERS_FILE
-        value: /var/data/users.json
-      - key: ALERTS_FILE
-        value: /var/data/alerts.json
-      - key: AMBULANCES_FILE
-        value: /var/data/ambulances.json
+
+
+
+
+
+
+
+
+
+
       - key: HOSPITAL_ADMIN_TOKEN
         generateValue: true
