@@ -1,0 +1,1877 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RoadRescue | Every Second Counts</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+</head>
+<body>
+
+  <nav class="navbar">
+    <img class="logo" src="images/logo-transparent.png" alt="RoadRescue logo">
+    <div class="nav-buttons">
+      <button class="nav-btn nav-btn-outline" onclick="showLoginPage()">User Login</button>
+      <button class="nav-btn nav-btn-solid" onclick="showHospitalLoginPage()">Hospital Login</button>
+    </div>
+  </nav>
+
+  <!-- ---------- HOME SECTION ---------- -->
+  <section id="home" class="page home active">
+    <div class="home-overlay"></div>
+    <div class="home-content">
+      <h1 class="hero-text">When an accident happens,<br>every second is a chance<br><span class="hero-center">to save a life.</span></h1>
+      <button class="send-alert-btn" onclick="showLoginMessage()">
+        <span class="pulse-ring"></span>
+        Send Alert
+      </button>
+      <p id="loginMessage" class="login-message" role="status" aria-live="polite" hidden>Login to continue</p>
+    </div>
+  </section>
+
+  <!-- ---------- LOGIN SECTION ---------- -->
+  <section id="loginPage" class="page login-page">
+    <div class="login-overlay"></div>
+    <form class="alert-card login-card" id="loginForm">
+      <button type="button" class="back-btn" onclick="showHomePage()">&larr; Back</button>
+      <h2>Welcome back</h2>
+      <p class="alert-sub">Sign in to continue to RoadRescue.</p>
+
+      <label for="loginEmail">Email address</label>
+      <input type="email" id="loginEmail" name="email" placeholder="you@example.com" autocomplete="email" required>
+
+      <label for="loginPassword">Password</label>
+      <input type="password" id="loginPassword" name="password" placeholder="Enter your password" autocomplete="current-password" required>
+
+      <button type="submit" class="submit-btn">Sign In</button>
+      <div class="login-divider" aria-hidden="true"><span>or</span></div>
+      <button type="button" id="googleLoginBtn" class="google-login-btn">Continue with Google</button>
+      <p class="hospital-register-prompt">New to RoadRescue? <button type="button" id="showUserRegister">Register</button></p>
+      <p id="loginStatus" class="login-status" role="status" aria-live="polite" hidden></p>
+    </form>
+
+    <form class="alert-card login-card hospital-register-card" id="userRegisterForm" hidden>
+      <button type="button" class="back-btn" id="backToUserLogin">&larr; Back to login</button>
+      <h2>Create your account</h2>
+      <p class="alert-sub">Start with your email address. We’ll send you a 4-digit verification code.</p>
+
+      <label for="userRegisterEmail">Email address</label>
+      <input type="email" id="userRegisterEmail" name="email" placeholder="you@example.com" autocomplete="email" required>
+
+      <button type="submit" class="submit-btn">Send verification code</button>
+      <p id="userRegisterStatus" class="login-status" role="status" aria-live="polite" hidden></p>
+    </form>
+
+    <form class="alert-card login-card hospital-register-card" id="userOtpForm" hidden>
+      <button type="button" class="back-btn" id="backToUserEmail">&larr; Change email</button>
+      <h2>Check your email</h2>
+      <p class="alert-sub">Enter the 4-digit code sent to <strong id="userOtpEmail"></strong>.</p>
+
+      <label for="userOtp0">Verification code</label>
+      <div class="otp-inputs" aria-label="4-digit verification code">
+        <input type="text" id="userOtp0" class="otp-input" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]" maxlength="1" aria-label="Digit 1" required>
+        <input type="text" id="userOtp1" class="otp-input" inputmode="numeric" pattern="[0-9]" maxlength="1" aria-label="Digit 2" required>
+        <input type="text" id="userOtp2" class="otp-input" inputmode="numeric" pattern="[0-9]" maxlength="1" aria-label="Digit 3" required>
+        <input type="text" id="userOtp3" class="otp-input" inputmode="numeric" pattern="[0-9]" maxlength="1" aria-label="Digit 4" required>
+      </div>
+
+      <button type="submit" class="submit-btn">Verify code</button>
+      <p id="userOtpStatus" class="login-status" role="status" aria-live="polite" hidden></p>
+    </form>
+
+    <form class="alert-card login-card hospital-register-card" id="userPasswordForm" hidden>
+      <button type="button" class="back-btn" id="backToUserOtp">&larr; Back to verification</button>
+      <h2>Create a password</h2>
+      <p class="alert-sub">Email verified: <strong id="userPasswordEmail"></strong></p>
+
+      <label for="userRegisterPassword">Create password</label>
+      <input type="password" id="userRegisterPassword" name="password" placeholder="At least 8 characters" minlength="8" autocomplete="new-password" required>
+
+      <label for="userRegisterPasswordConfirm">Confirm password</label>
+      <input type="password" id="userRegisterPasswordConfirm" name="passwordConfirm" placeholder="Enter your password again" minlength="8" autocomplete="new-password" required>
+
+      <button type="submit" class="submit-btn">Create account</button>
+      <p id="userPasswordStatus" class="login-status" role="status" aria-live="polite" hidden></p>
+    </form>
+  </section>
+
+  <!-- ---------- HOSPITAL LOGIN AND REGISTRATION ---------- -->
+  <section id="hospitalLoginPage" class="page login-page hospital-auth-page">
+    <div class="login-overlay"></div>
+    <form class="alert-card login-card" id="hospitalLoginForm">
+      <button type="button" class="back-btn" onclick="showHomePage()">&larr; Back</button>
+      <div class="hospital-auth-eyebrow">ROADRESCUE HOSPITAL PORTAL</div>
+      <h2>Hospital login</h2>
+      <p class="alert-sub">Sign in to manage your hospital's emergency requests.</p>
+
+      <label for="hospitalLoginEmail">Hospital email</label>
+      <input type="email" id="hospitalLoginEmail" name="email" placeholder="name@hospital.com" autocomplete="username" required>
+
+      <label for="hospitalLoginPassword">Password</label>
+      <input type="password" id="hospitalLoginPassword" name="password" placeholder="Enter your password" autocomplete="current-password" required>
+
+      <button type="submit" class="submit-btn">Hospital Sign In</button>
+      <p class="hospital-register-prompt">New hospital? <button type="button" id="showHospitalRegister">Register before login</button></p>
+      <p id="hospitalLoginStatus" class="login-status" role="status" aria-live="polite" hidden></p>
+    </form>
+
+    <form class="alert-card login-card hospital-register-card" id="hospitalRegisterForm" hidden>
+      <button type="button" class="back-btn" id="backToHospitalLogin">&larr; Hospital login</button>
+      <div class="hospital-auth-eyebrow">ROADRESCUE HOSPITAL PORTAL</div>
+      <h2>Register your hospital</h2>
+
+      <label for="hospitalName">Hospital name</label>
+      <input type="text" id="hospitalName" name="hospitalName" placeholder="Full registered name" autocomplete="organization" required>
+
+      <label for="hospitalRegisterEmail">Official hospital email</label>
+      <input type="email" id="hospitalRegisterEmail" name="email" placeholder="name@hospital.com" autocomplete="email" required>
+
+      <label for="hospitalRegisterPassword">Create password</label>
+      <input type="password" id="hospitalRegisterPassword" name="password" placeholder="At least 8 characters" minlength="8" autocomplete="new-password" required>
+
+      <label for="hospitalAddress">Hospital address</label>
+      <input type="text" id="hospitalAddress" name="address" placeholder="Street, city, state, postal code" autocomplete="street-address" required>
+
+      <div id="hospitalLocationStatus" class="hospital-location-status" role="status" aria-live="polite" hidden></div>
+      <div id="hospitalLocationPicker" class="map-box hospital-registration-map-box" hidden>
+        <div id="hospitalMapPinHint" class="hospital-map-instruction">Select the hospital entrance on the map.</div>
+        <div id="hospitalRegistrationMap" tabindex="-1" aria-label="Click the exact hospital entrance to place its map pin" style="height: 300px;"></div>
+      </div>
+      <input type="hidden" id="hospitalLatitude" name="latitude">
+      <input type="hidden" id="hospitalLongitude" name="longitude">
+
+      <button type="submit" class="submit-btn">Submit for Registration</button>
+      <div id="hospitalRegisterStatus" class="hospital-register-status" role="status" aria-live="polite" hidden></div>
+    </form>
+  </section>
+
+  <!-- ---------- ALERT SECTION ---------- -->
+  <section id="alertPage" class="page alert-page">
+    <div class="alert-overlay"></div>
+
+    <form class="alert-card" id="alertForm">
+      <button type="button" class="back-btn" onclick="showHomePage()">&larr; Back</button>
+      <h2>Emergency Alert</h2>
+      <p class="alert-sub">Fill this in as fast as you can — help is on the way.</p>
+
+      <label for="name">Name</label>
+      <input type="text" id="name" placeholder="Full name" required>
+
+      <label for="age">Age</label>
+      <input type="number" id="age" placeholder="Age" min="0" max="120" required>
+
+      <label>Photo of the accident</label>
+      <div class="photo-capture">
+        <input type="file" id="photoInput" accept="image/*" capture="environment">
+        <label for="photoInput" class="photo-btn">📷 Capture Photo</label>
+        <img id="photoPreview" class="photo-preview" alt="" hidden>
+      </div>
+
+      <label for="location">Current Location</label>
+      <div class="location-row">
+        <input type="text" id="location" placeholder="Write the address here">
+        <button type="button" id="gpsBtn" class="gps-btn" title="Start live location sharing">
+          <span class="gps-icon"></span><span id="gpsBtnLabel">Share Live Location</span>
+        </button>
+      </div>
+      <p id="gpsStatus" class="gps-status" role="status" aria-live="polite"></p>
+
+      <div class="map-box">
+        <iframe
+          id="mapFrame"
+          src="https://maps.google.com/maps?q=World&z=1&output=embed"
+          loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade"
+          title="Current Location Map">
+        </iframe>
+      </div>
+
+      <button type="submit" class="submit-btn">Send Alert</button>
+      <p id="successMsg" class="success-msg" hidden>✅ Alert sent! Help has been notified.</p>
+    </form>
+  </section>
+
+  <!-- ---------- USER TRACKING DASHBOARD ---------- -->
+  <section id="trackingPage" class="page tracking-page">
+    <main class="tracking-dashboard">
+      <header class="tracking-header">
+        <div>
+          <p class="dashboard-eyebrow">EMERGENCY RESPONSE</p>
+          <h1 id="userGreeting">Hello, RoadRescue User</h1>
+        </div>
+        <div class="user-profile-menu">
+          <button type="button" id="userProfileButton" class="user-profile-avatar" aria-label="Open profile menu" aria-expanded="false" aria-controls="userProfileMenu">R</button>
+          <div id="userProfileMenu" class="user-profile-menu-popover" hidden>
+            <button type="button" id="userLogoutButton">Log out</button>
+          </div>
+        </div>
+      </header>
+
+      <section id="responseStatusPanel" class="response-status" aria-labelledby="responseTitle">
+        <div class="response-copy">
+          <p class="status-kicker">EMERGENCY REQUEST <span id="requestNumber"></span></p>
+          <h2 id="responseTitle">Waiting for a hospital to accept</h2>
+          <p id="responseDescription">Request sent. Awaiting hospital response.</p>
+          <div id="assignedAmbulanceDetails" class="assigned-ambulance-details" hidden>
+            <div><small>AMBULANCE</small><strong id="assignedVanNumber"></strong></div>
+            <div><small>DRIVER</small><strong id="assignedDriverName"></strong></div>
+            <a id="assignedDriverPhone" href="#" aria-label="Call assigned ambulance driver"></a>
+          </div>
+        </div>
+        <div class="status-indicator" aria-hidden="true"><span></span></div>
+        <ol class="response-steps">
+          <li class="complete"><span>1</span><div><strong>Request created</strong><small id="requestTime">Just now</small></div></li>
+          <li id="responseAcceptedStep" class="current"><span>2</span><div><strong>Hospital acceptance</strong><small id="responseAcceptedDetail">Waiting</small></div></li>
+          <li id="responseDispatchedStep"><span>3</span><div><strong>Ambulance dispatched</strong><small id="responseDispatchedDetail">Awaiting unit</small></div></li>
+        </ol>
+      </section>
+
+      <div class="dashboard-columns">
+        <section class="dashboard-panel location-panel">
+          <div class="panel-heading">
+            <div><p class="panel-eyebrow">REGISTERED HOSPITALS</p><h2>Nearby hospitals</h2></div>
+            <span class="map-live"><span></span><span id="hospitalCount">Waiting for location</span></span>
+          </div>
+          <div id="dashboardMap" class="dashboard-map" role="application" aria-label="Map of your location and active RoadRescue-registered hospitals"></div>
+          <p class="hospital-map-status" id="hospitalMapStatus" role="status" aria-live="polite">Share location to find nearby hospitals.</p>
+          <p class="hospital-map-status" id="ambulanceRouteStatus" role="status" aria-live="polite" hidden></p>
+        </section>
+
+        <section class="dashboard-panel details-panel">
+          <div class="panel-heading"><div><p class="panel-eyebrow">PATIENT</p><h2>Patient details</h2></div></div>
+          <dl class="patient-details">
+            <div><dt>Name</dt><dd id="dashboardName">Not provided</dd></div>
+            <div><dt>Age</dt><dd id="dashboardAge">Not provided</dd></div>
+            <div><dt>Submitted</dt><dd id="dashboardSubmitted">Just now</dd></div>
+          </dl>
+          <img id="dashboardPhoto" class="dashboard-photo" alt="Accident scene provided with the request" hidden>
+        </section>
+      </div>
+
+      <button type="button" class="dashboard-home-btn" onclick="showHomePage()">Return to home</button>
+    </main>
+  </section>
+
+  <section id="hospitalDashboardPage" class="page hospital-dashboard-page" hidden>
+    <main class="hospital-dashboard">
+      <header class="hospital-dashboard-header">
+        <div>
+          <p class="dashboard-eyebrow">ROADRESCUE / HOSPITAL DISPATCH</p>
+          <h1 id="hospitalDashboardTitle">Hospital dashboard</h1>
+        </div>
+        <div class="hospital-dashboard-actions">
+          <button type="button" id="returnToResponseButton" class="dashboard-home-btn" onclick="returnToResponseDashboard()" disabled title="Submit a user emergency request to enable this shortcut">Return to response</button>
+          <button type="button" class="dashboard-home-btn" onclick="logoutHospital()">Log out</button>
+        </div>
+      </header>
+
+      <div class="hospital-summary-row">
+        <div class="summary-card">
+          <span>Routed requests</span>
+          <strong id="hospitalNearbyCount">0</strong>
+        </div>
+        <div class="summary-card">
+          <span>Available</span>
+          <strong id="hospitalAvailableCount">0</strong>
+        </div>
+        <div class="summary-card">
+          <span>Accepted</span>
+          <strong id="hospitalAcceptedCount">0</strong>
+        </div>
+      </div>
+
+      <div class="hospital-dashboard-grid">
+        <section class="dashboard-panel hospital-requests-panel">
+          <div class="panel-heading">
+            <div><h2>Active requests</h2></div>
+          </div>
+          <p id="hospitalRequestStatus" class="hospital-map-status" role="status" aria-live="polite" hidden></p>
+          <div id="hospitalRequestList" class="hospital-request-list"></div>
+        </section>
+
+        <aside class="dashboard-panel hospital-side-panel">
+          <div class="panel-heading">
+            <div><h2>Available ambulances</h2></div>
+          </div>
+          <div class="hospital-status-box">
+            <p class="status-label">Assigned vehicles</p>
+            <div id="ambulanceList" class="ambulance-list"></div>
+          </div>
+        </aside>
+      </div>
+    </main>
+  </section>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    // ---------- Page switching (with fade animation via CSS classes) ----------
+    let loginMessageTimer;
+    let restoringAppHistory = false;
+
+    function recordAppPage(page, details = {}) {
+      if (restoringAppHistory) return;
+      const state = { roadRescue: true, page, ...details };
+      if (history.state?.roadRescue && history.state.page === page
+        && history.state.alertId === state.alertId) return;
+      history.pushState(state, '', `#${page}`);
+    }
+
+    function showLoginMessage() {
+      const loginMessage = document.getElementById('loginMessage');
+      loginMessage.hidden = false;
+      window.clearTimeout(loginMessageTimer);
+      loginMessageTimer = window.setTimeout(() => {
+        loginMessage.hidden = true;
+      }, 3500);
+    }
+
+    function showAlertPage() {
+      recordAppPage('alert');
+      document.body.classList.add('alert-page-active');
+      document.body.classList.remove('dashboard-active');
+      document.getElementById('home').classList.remove('active');
+      document.getElementById('loginPage').classList.remove('active');
+      document.getElementById('hospitalLoginPage').classList.remove('active');
+      document.getElementById('trackingPage').classList.remove('active');
+      document.getElementById('hospitalDashboardPage').classList.remove('active');
+      document.getElementById('hospitalDashboardPage').hidden = true;
+      document.getElementById('alertPage').classList.add('active');
+    }
+    function showLoginPage() {
+      recordAppPage('user-login');
+      document.body.classList.remove('alert-page-active');
+      document.body.classList.remove('dashboard-active');
+      document.getElementById('home').classList.remove('active');
+      document.getElementById('alertPage').classList.remove('active');
+      document.getElementById('hospitalLoginPage').classList.remove('active');
+      document.getElementById('trackingPage').classList.remove('active');
+      document.getElementById('hospitalDashboardPage').classList.remove('active');
+      document.getElementById('hospitalDashboardPage').hidden = true;
+      document.getElementById('userRegisterForm').hidden = true;
+      document.getElementById('userOtpForm').hidden = true;
+      document.getElementById('userPasswordForm').hidden = true;
+      document.getElementById('loginForm').hidden = false;
+      document.getElementById('loginPage').classList.add('active');
+    }
+    function showHospitalLoginPage() {
+      recordAppPage('hospital-login');
+      document.body.classList.remove('alert-page-active');
+      document.body.classList.remove('dashboard-active');
+      document.getElementById('home').classList.remove('active');
+      document.getElementById('alertPage').classList.remove('active');
+      document.getElementById('loginPage').classList.remove('active');
+      document.getElementById('trackingPage').classList.remove('active');
+      document.getElementById('hospitalDashboardPage').classList.remove('active');
+      document.getElementById('hospitalDashboardPage').hidden = true;
+      document.getElementById('hospitalRegisterForm').hidden = true;
+      document.getElementById('hospitalLoginForm').hidden = false;
+      document.getElementById('hospitalLoginPage').classList.add('active');
+    }
+    function showHomePage() {
+      recordAppPage('home');
+      document.body.classList.remove('alert-page-active');
+      stopResponseStatusPolling();
+      document.body.classList.remove('dashboard-active');
+      document.getElementById('alertPage').classList.remove('active');
+      document.getElementById('loginPage').classList.remove('active');
+      document.getElementById('hospitalLoginPage').classList.remove('active');
+      document.getElementById('trackingPage').classList.remove('active');
+      document.getElementById('hospitalDashboardPage').classList.remove('active');
+      document.getElementById('hospitalDashboardPage').hidden = true;
+      document.getElementById('home').classList.add('active');
+    }
+    const userProfileButton = document.getElementById('userProfileButton');
+    const userProfileMenu = document.getElementById('userProfileMenu');
+    userProfileButton.addEventListener('click', () => {
+      const isExpanded = userProfileButton.getAttribute('aria-expanded') === 'true';
+      userProfileButton.setAttribute('aria-expanded', String(!isExpanded));
+      userProfileMenu.hidden = isExpanded;
+    });
+    document.getElementById('userLogoutButton').addEventListener('click', () => {
+      sessionStorage.removeItem('roadrescue.userName');
+      sessionStorage.removeItem('roadrescue.userAccessToken');
+      sessionStorage.removeItem('roadrescue.activeAlertId');
+      sessionStorage.removeItem('roadrescue.activeAlertDetails');
+      userAccessToken = '';
+      activeAlertId = null;
+      try {
+        activeAlertDetails = JSON.parse(sessionStorage.getItem('roadrescue.activeAlertDetails') || 'null');
+      } catch {
+        activeAlertDetails = null;
+      }
+      stopResponseStatusPolling();
+      document.getElementById('loginForm').reset();
+      userProfileMenu.hidden = true;
+      userProfileButton.setAttribute('aria-expanded', 'false');
+      showHomePage();
+    });
+    document.addEventListener('click', (event) => {
+      if (!event.target.closest('.user-profile-menu')) {
+        userProfileMenu.hidden = true;
+        userProfileButton.setAttribute('aria-expanded', 'false');
+      }
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && !userProfileMenu.hidden) {
+        userProfileMenu.hidden = true;
+        userProfileButton.setAttribute('aria-expanded', 'false');
+        userProfileButton.focus();
+      }
+    });
+    function showHospitalDashboard() {
+      recordAppPage('hospital-dashboard', { hospitalId: currentHospital?.id });
+      document.body.classList.remove('alert-page-active');
+      document.getElementById('returnToResponseButton').disabled =
+        !sessionStorage.getItem('roadrescue.activeAlertId') && !activeAlertId;
+      document.body.classList.add('dashboard-active');
+      document.getElementById('home').classList.remove('active');
+      document.getElementById('loginPage').classList.remove('active');
+      document.getElementById('alertPage').classList.remove('active');
+      document.getElementById('hospitalLoginPage').classList.remove('active');
+      document.getElementById('trackingPage').classList.remove('active');
+      document.getElementById('hospitalDashboardPage').hidden = false;
+      document.getElementById('hospitalDashboardPage').classList.add('active');
+      renderHospitalDashboard();
+      window.clearInterval(hospitalDashboardRefreshTimer);
+      hospitalDashboardRefreshTimer = window.setInterval(() => {
+        if (!document.getElementById('hospitalDashboardPage').classList.contains('active')) {
+          window.clearInterval(hospitalDashboardRefreshTimer);
+          hospitalDashboardRefreshTimer = null;
+          return;
+        }
+        renderHospitalDashboard();
+      }, 5000);
+    }
+
+    function logoutHospital() {
+      currentHospital = null;
+      hospitalAccessToken = '';
+      window.clearInterval(hospitalDashboardRefreshTimer);
+      hospitalDashboardRefreshTimer = null;
+      showHospitalLoginPage();
+    }
+
+    // ---------- Photo capture preview ----------
+    const photoInput = document.getElementById('photoInput');
+    const photoPreview = document.getElementById('photoPreview');
+
+    photoInput.addEventListener('change', () => {
+      const file = photoInput.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        photoPreview.src = e.target.result;
+        photoPreview.hidden = false;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // ---------- GPS tracker ----------
+    const gpsBtn = document.getElementById('gpsBtn');
+    const gpsBtnLabel = document.getElementById('gpsBtnLabel');
+    const locationInput = document.getElementById('location');
+    const gpsStatus = document.getElementById('gpsStatus');
+    const mapFrame = document.getElementById('mapFrame');
+    let locationWatchId = null;
+    let lastMappedCoordinates = null;
+    let currentCoordinates = null;
+    let userAccessToken = sessionStorage.getItem('roadrescue.userAccessToken') || '';
+    let activeAlertId = sessionStorage.getItem('roadrescue.activeAlertId');
+    let activeAlertDetails = null;
+    let responseStatusTimer = null;
+    let nearbyHospitalRefreshTimer = null;
+    let dashboardLeafletMap = null;
+    let hospitalMarkerLayer = null;
+    let ambulanceMarkerLayer = null;
+    let dispatchRouteLayer = null;
+    let nearbyHospitalMarkers = new Map();
+    let hasFitHospitalBounds = false;
+    let currentAcceptedHospitalId = null;
+    let activeRouteKey = null;
+    let lastAssignedAmbulanceMapState = null;
+    let currentLocationMarker = null;
+    let lastHospitalSearch = null;
+    let lastHospitalSearchTime = 0;
+    function updateMapLocation(query) {
+      const mapUrl = new URL('https://maps.google.com/maps');
+      mapUrl.search = new URLSearchParams({ q: query, z: '15', output: 'embed' });
+      mapFrame.src = mapUrl.toString();
+    }
+
+    locationInput.addEventListener('change', () => {
+      const address = locationInput.value.trim();
+      if (address) updateMapLocation(address);
+    });
+
+    function stopLocationSharing(message) {
+      if (locationWatchId !== null) {
+        navigator.geolocation.clearWatch(locationWatchId);
+      }
+      locationWatchId = null;
+      lastMappedCoordinates = null;
+      gpsBtn.classList.remove('locating', 'sharing');
+      gpsBtnLabel.textContent = 'Share Live Location';
+      gpsBtn.title = 'Start live location sharing';
+      gpsStatus.textContent = message;
+    }
+
+    function locationMovedEnough(latitude, longitude) {
+      if (!lastMappedCoordinates) return true;
+      const radians = Math.PI / 180;
+      const averageLatitude = (latitude + lastMappedCoordinates.latitude) / 2 * radians;
+      const northMeters = (latitude - lastMappedCoordinates.latitude) * 111320;
+      const eastMeters = (longitude - lastMappedCoordinates.longitude) * 111320 * Math.cos(averageLatitude);
+      return Math.hypot(northMeters, eastMeters) >= 25;
+    }
+
+    gpsBtn.addEventListener('click', () => {
+      if (locationWatchId !== null) {
+        stopLocationSharing('Live location tracking stopped.');
+        return;
+      }
+      if (!navigator.geolocation) {
+        gpsStatus.textContent = 'Live location is not supported on this device/browser.';
+        return;
+      }
+      gpsBtn.classList.add('locating');
+      gpsBtnLabel.textContent = 'Getting location...';
+      gpsStatus.textContent = 'Requesting permission for live location...';
+
+      locationWatchId = navigator.geolocation.watchPosition(
+        (position) => {
+          const lat = position.coords.latitude.toFixed(6);
+          const lng = position.coords.longitude.toFixed(6);
+          const latitude = Number(lat);
+          const longitude = Number(lng);
+          currentCoordinates = { latitude, longitude };
+          locationInput.value = `Lat: ${lat}, Lng: ${lng}`;
+          if (locationMovedEnough(latitude, longitude)) {
+            updateMapLocation(`${lat},${lng}`);
+            lastMappedCoordinates = { latitude, longitude };
+          }
+          gpsBtn.classList.remove('locating');
+          gpsBtn.classList.add('sharing');
+          gpsBtnLabel.textContent = 'Stop Sharing';
+          gpsBtn.title = 'Stop live location sharing';
+          gpsStatus.textContent = `Live tracking active on this device (accuracy ~${Math.round(position.coords.accuracy)}m). It is not sent to anyone yet.`;
+          if (document.getElementById('trackingPage').classList.contains('active')) {
+            showNearbyRegisteredHospitals(currentCoordinates);
+          }
+        },
+        (error) => {
+          stopLocationSharing('Could not start live location: ' + error.message);
+        },
+        { enableHighAccuracy: true, maximumAge: 1000, timeout: 15000 }
+      );
+    });
+
+    // ---------- Form submit ----------
+    function stopResponseStatusPolling() {
+      window.clearInterval(responseStatusTimer);
+      window.clearInterval(nearbyHospitalRefreshTimer);
+      responseStatusTimer = null;
+      nearbyHospitalRefreshTimer = null;
+    }
+
+    function returnToResponseDashboard() {
+      const savedAlertId = sessionStorage.getItem('roadrescue.activeAlertId') || activeAlertId;
+      if (!savedAlertId) {
+        showHomePage();
+        return;
+      }
+      try {
+        activeAlertDetails = JSON.parse(sessionStorage.getItem('roadrescue.activeAlertDetails') || 'null');
+      } catch {
+        activeAlertDetails = null;
+      }
+      showTrackingDashboard(savedAlertId);
+    }
+
+    function updateAssignedAmbulanceMap(alert) {
+      if (!dashboardLeafletMap || !ambulanceMarkerLayer || !dispatchRouteLayer || !window.L) return;
+      const currentLocation = currentLocationMarker?.getLatLng();
+      const mapState = JSON.stringify({
+        alertId: alert.id,
+        status: alert.status,
+        hospitalId: alert.hospitalId,
+        hospitalLocation: alert.hospitalLocation,
+        ambulance: alert.ambulance,
+        currentLocation: currentLocation
+          ? { latitude: currentLocation.lat, longitude: currentLocation.lng }
+          : null
+      });
+      if (mapState === lastAssignedAmbulanceMapState) return;
+      lastAssignedAmbulanceMapState = mapState;
+      currentAcceptedHospitalId = ['accepted', 'dispatched', 'completed'].includes(alert.status)
+        ? alert.hospitalId
+        : null;
+      for (const [hospitalId, marker] of nearbyHospitalMarkers) {
+        const selected = hospitalId === currentAcceptedHospitalId;
+        marker.setStyle({
+          radius: selected ? 12 : 9,
+          color: '#ffffff',
+          weight: selected ? 3 : 2,
+          fillColor: selected ? '#21845b' : '#c62836',
+          fillOpacity: 1
+        });
+      }
+      ambulanceMarkerLayer.clearLayers();
+      dispatchRouteLayer.clearLayers();
+      activeRouteKey = null;
+      const routeStatus = document.getElementById('ambulanceRouteStatus');
+      routeStatus.hidden = true;
+      if (!['accepted', 'dispatched', 'completed'].includes(alert.status) || !alert.hospitalLocation) return;
+
+      const { latitude, longitude } = alert.hospitalLocation;
+      if (!Number.isFinite(Number(latitude)) || !Number.isFinite(Number(longitude))) return;
+      const popup = document.createElement('div');
+      const hospitalLabel = document.createElement('strong');
+      hospitalLabel.textContent = alert.hospitalName || 'Accepting hospital';
+      popup.appendChild(hospitalLabel);
+      if (['dispatched', 'completed'].includes(alert.status) && alert.ambulance) {
+        const driver = document.createElement('p');
+        driver.textContent = `Driver: ${alert.ambulance.driverName || 'Assigned driver'} · ${alert.ambulance.vanNumber}`;
+        popup.appendChild(driver);
+        if (alert.ambulance.phone) {
+          const phone = document.createElement('a');
+          phone.href = `tel:${alert.ambulance.phone}`;
+          phone.textContent = alert.ambulance.phone;
+          popup.appendChild(phone);
+        }
+      } else {
+        const accepted = document.createElement('p');
+        accepted.textContent = 'Request accepted';
+        popup.appendChild(accepted);
+      }
+
+      const ambulanceMarker = L.marker([Number(latitude), Number(longitude)])
+        .bindPopup(popup)
+        .addTo(ambulanceMarkerLayer);
+      activeRouteKey = `${alert.id}:${alert.status}`;
+      drawDispatchRoute(alert, ambulanceMarker, activeRouteKey);
+    }
+
+    async function drawDispatchRoute(alert, ambulanceMarker, routeKey) {
+      const routeStatus = document.getElementById('ambulanceRouteStatus');
+      routeStatus.hidden = false;
+      if (!currentLocationMarker) {
+        routeStatus.textContent = 'Share location to show the route.';
+        return;
+      }
+
+      const origin = alert.hospitalLocation;
+      const destination = currentLocationMarker.getLatLng();
+      const routeUrl = new URL(`https://router.project-osrm.org/route/v1/driving/${origin.longitude},${origin.latitude};${destination.lng},${destination.lat}`);
+      routeUrl.searchParams.set('overview', 'full');
+      routeUrl.searchParams.set('geometries', 'geojson');
+      routeStatus.textContent = 'Finding ambulance route...';
+
+      let routePoints;
+      let routeSummary = '';
+      try {
+        const response = await fetch(routeUrl);
+        if (!response.ok) throw new Error('Road route service unavailable.');
+        const routeData = await response.json();
+        if (routeData.code !== 'Ok' || !routeData.routes?.[0]?.geometry?.coordinates?.length) {
+          throw new Error('No driving route is available.');
+        }
+        if (activeRouteKey !== routeKey) return;
+        const route = routeData.routes[0];
+        routePoints = route.geometry.coordinates.map(([longitude, latitude]) => [latitude, longitude]);
+        const distanceKm = (route.distance / 1000).toFixed(1);
+        const durationMinutes = Math.max(1, Math.round(route.duration / 60));
+        routeSummary = `${distanceKm} km · about ${durationMinutes} min`;
+      } catch {
+        if (activeRouteKey !== routeKey) return;
+        routePoints = [
+          [Number(origin.latitude), Number(origin.longitude)],
+          [destination.lat, destination.lng]
+        ];
+        routeSummary = 'Road directions unavailable; showing direct route.';
+      }
+
+      const routeLine = L.polyline(routePoints, {
+        color: '#21845b',
+        weight: 6,
+        opacity: 0.96,
+        dashArray: null,
+        lineCap: 'round',
+        lineJoin: 'round'
+      }).addTo(dispatchRouteLayer);
+      const bounds = L.featureGroup([currentLocationMarker, ambulanceMarker, routeLine]).getBounds();
+      dashboardLeafletMap.fitBounds(bounds.pad(0.18), { maxZoom: 14 });
+      routeStatus.textContent = `${routeSummary} From ${alert.hospitalName || 'the accepting hospital'} to your live location.`;
+    }
+
+    async function refreshResponseStatus() {
+      if (!activeAlertId) return;
+      try {
+        const response = await fetch(`/api/alerts/${encodeURIComponent(activeAlertId)}/status`, {
+          headers: { Authorization: `Bearer ${userAccessToken}` }
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Could not refresh dispatch status.');
+
+        const alertStatus = data.alert.status;
+        const hospitalName = data.alert.hospitalName;
+        const ambulance = data.alert.ambulance;
+        const statusPanel = document.getElementById('responseStatusPanel');
+        const title = document.getElementById('responseTitle');
+        const description = document.getElementById('responseDescription');
+        const acceptedStep = document.getElementById('responseAcceptedStep');
+        const dispatchedStep = document.getElementById('responseDispatchedStep');
+        const acceptedDetail = document.getElementById('responseAcceptedDetail');
+        const dispatchedDetail = document.getElementById('responseDispatchedDetail');
+        const assignedDetails = document.getElementById('assignedAmbulanceDetails');
+        const assignedVanNumber = document.getElementById('assignedVanNumber');
+        const assignedDriverName = document.getElementById('assignedDriverName');
+        const assignedDriverPhone = document.getElementById('assignedDriverPhone');
+
+        statusPanel.classList.remove('accepted', 'dispatched');
+        updateAssignedAmbulanceMap(data.alert);
+        const hasAssignedAmbulance = ['dispatched', 'completed'].includes(alertStatus) && Boolean(ambulance);
+        assignedDetails.hidden = !hasAssignedAmbulance;
+        if (hasAssignedAmbulance) {
+          assignedVanNumber.textContent = ambulance.vanNumber || 'Ambulance assigned';
+          assignedDriverName.textContent = ambulance.driverName || 'Driver details unavailable';
+          assignedDriverPhone.textContent = ambulance.phone ? `Call ${ambulance.phone}` : 'Phone number unavailable';
+          assignedDriverPhone.href = ambulance.phone ? `tel:${ambulance.phone}` : '#';
+        }
+        acceptedStep.classList.remove('current', 'complete');
+        dispatchedStep.classList.remove('current', 'complete');
+        if (alertStatus === 'accepted') {
+          statusPanel.classList.add('accepted');
+          title.textContent = hospitalName ? `Dispatch accepted by ${hospitalName}` : 'Dispatch accepted';
+          description.textContent = 'Hospital accepted. Ambulance preparing.';
+          acceptedStep.classList.add('complete');
+          dispatchedStep.classList.add('current');
+          acceptedDetail.textContent = 'Accepted';
+          dispatchedDetail.textContent = 'Assigning ambulance';
+          return;
+        }
+
+        if (alertStatus === 'dispatched') {
+          statusPanel.classList.add('dispatched');
+          title.textContent = 'Request accepted — ambulance dispatched';
+          description.textContent = `${hospitalName ? `Accepted by ${hospitalName}. ` : ''}${ambulance?.vanNumber || 'Ambulance'} on the way.`;
+          acceptedStep.classList.add('complete');
+          dispatchedStep.classList.add('complete');
+          acceptedDetail.textContent = 'Accepted';
+          dispatchedDetail.textContent = ambulance?.phone
+            ? `${ambulance.vanNumber} en route · Call ${ambulance.phone}`
+            : 'En route';
+          return;
+        }
+
+        if (alertStatus === 'completed') {
+          statusPanel.classList.add('dispatched');
+          title.textContent = 'Emergency response complete';
+          description.textContent = 'Response complete.';
+          acceptedStep.classList.add('complete');
+          dispatchedStep.classList.add('complete');
+          acceptedDetail.textContent = 'Accepted';
+          dispatchedDetail.textContent = 'Response completed';
+          return;
+        }
+
+        title.textContent = 'Waiting for a hospital to accept';
+        description.textContent = 'Your request is in the hospital dispatch queue.';
+        acceptedStep.classList.add('current');
+        acceptedDetail.textContent = 'Waiting';
+        dispatchedDetail.textContent = 'Awaiting unit';
+      } catch (error) {
+        document.getElementById('responseDescription').textContent =
+          `${error.message || 'Status refresh failed.'} Retrying. If this continues, sign in again to view this request.`;
+      }
+    }
+
+    function showTrackingDashboard(alertId) {
+      recordAppPage('response-dashboard', { alertId });
+      document.body.classList.remove('alert-page-active');
+      activeAlertId = alertId || activeAlertId;
+      if (activeAlertId) sessionStorage.setItem('roadrescue.activeAlertId', activeAlertId);
+      if (!activeAlertDetails || activeAlertDetails.id !== activeAlertId) {
+        try {
+          activeAlertDetails = JSON.parse(sessionStorage.getItem('roadrescue.activeAlertDetails') || 'null');
+        } catch {
+          activeAlertDetails = null;
+        }
+      }
+      if (activeAlertDetails?.id === activeAlertId) {
+        document.getElementById('name').value = activeAlertDetails.name || '';
+        document.getElementById('age').value = activeAlertDetails.age || '';
+        locationInput.value = activeAlertDetails.address || '';
+        const latitude = Number(activeAlertDetails.latitude);
+        const longitude = Number(activeAlertDetails.longitude);
+        if (Number.isFinite(latitude) && Number.isFinite(longitude)) {
+          currentCoordinates = { latitude, longitude };
+        }
+      }
+      const submittedPatientName = document.getElementById('name').value.trim();
+      const signedInUserName = sessionStorage.getItem('roadrescue.userName') || 'RoadRescue User';
+      const greetingName = submittedPatientName || signedInUserName.trim() || 'RoadRescue User';
+      document.getElementById('userGreeting').textContent = `Hello, ${greetingName}`;
+      document.getElementById('userProfileButton').textContent = greetingName.charAt(0).toLocaleUpperCase();
+      document.getElementById('userProfileButton').setAttribute('aria-label', `${greetingName} profile menu`);
+      document.getElementById('userProfileMenu').hidden = true;
+      document.getElementById('userProfileButton').setAttribute('aria-expanded', 'false');
+      const submittedAt = new Date(activeAlertDetails?.createdAt || Date.now());
+      const location = locationInput.value.trim() || 'Location not provided';
+      const mapQuery = locationInput.value.trim();
+      const requestCode = `RR-${submittedAt.getTime().toString().slice(-6)}`;
+
+      document.getElementById('dashboardName').textContent = document.getElementById('name').value.trim();
+      document.getElementById('dashboardAge').textContent = document.getElementById('age').value;
+      document.getElementById('requestNumber').textContent = requestCode;
+      document.getElementById('requestTime').textContent = submittedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      document.getElementById('dashboardSubmitted').textContent = submittedAt.toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
+
+      const dashboardPhoto = document.getElementById('dashboardPhoto');
+      if (!photoPreview.hidden && photoPreview.src) {
+        dashboardPhoto.src = photoPreview.src;
+        dashboardPhoto.hidden = false;
+      } else {
+        dashboardPhoto.removeAttribute('src');
+        dashboardPhoto.hidden = true;
+      }
+
+      document.getElementById('alertPage').classList.remove('active');
+      document.getElementById('home').classList.remove('active');
+      document.getElementById('loginPage').classList.remove('active');
+      document.getElementById('hospitalLoginPage').classList.remove('active');
+      document.getElementById('hospitalDashboardPage').classList.remove('active');
+      document.getElementById('hospitalDashboardPage').hidden = true;
+      const trackingPage = document.getElementById('trackingPage');
+      trackingPage.scrollTop = 0;
+      document.body.classList.add('dashboard-active');
+      trackingPage.classList.add('active');
+      stopResponseStatusPolling();
+      refreshResponseStatus();
+      responseStatusTimer = window.setInterval(() => {
+        if (!trackingPage.classList.contains('active')) {
+          stopResponseStatusPolling();
+          return;
+        }
+        refreshResponseStatus();
+      }, 5000);
+      const coordinates = currentCoordinates || parseCoordinates(mapQuery);
+      showNearbyRegisteredHospitals(coordinates, true);
+      if (!currentCoordinates && navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition((position) => {
+          currentCoordinates = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude
+          };
+          showNearbyRegisteredHospitals(currentCoordinates, true);
+        }, () => {
+          document.getElementById('hospitalMapStatus').textContent =
+            'Location access required to find hospitals.';
+        }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 30000 });
+      }
+      nearbyHospitalRefreshTimer = window.setInterval(() => {
+        if (!trackingPage.classList.contains('active')) {
+          window.clearInterval(nearbyHospitalRefreshTimer);
+          nearbyHospitalRefreshTimer = null;
+          return;
+        }
+        showNearbyRegisteredHospitals(currentCoordinates || parseCoordinates(locationInput.value));
+      }, 5000);
+      window.setTimeout(() => dashboardLeafletMap?.invalidateSize(), 450);
+    }
+
+    function parseCoordinates(value) {
+      const match = value.match(/(?:lat:\s*)?(-?\d+(?:\.\d+)?)[,\s]+(?:lng:\s*)?(-?\d+(?:\.\d+)?)/i);
+      if (!match) return null;
+      const latitude = Number(match[1]);
+      const longitude = Number(match[2]);
+      if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) return null;
+      return { latitude, longitude };
+    }
+
+    function initializeHospitalMap() {
+      if (dashboardLeafletMap) return true;
+      if (!window.L) {
+        document.getElementById('hospitalMapStatus').textContent = 'Map unavailable. Check connection and reload.';
+        document.getElementById('hospitalCount').textContent = 'Map unavailable';
+        return false;
+      }
+
+      dashboardLeafletMap = L.map('dashboardMap').setView([20, 0], 2);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>'
+      }).addTo(dashboardLeafletMap);
+      hospitalMarkerLayer = L.layerGroup().addTo(dashboardLeafletMap);
+      ambulanceMarkerLayer = L.layerGroup().addTo(dashboardLeafletMap);
+      dispatchRouteLayer = L.layerGroup().addTo(dashboardLeafletMap);
+      return true;
+    }
+
+    function showNearbyRegisteredHospitals(coordinates, forceSearch = false) {
+      const count = document.getElementById('hospitalCount');
+      const status = document.getElementById('hospitalMapStatus');
+      if (!initializeHospitalMap()) return;
+
+      if (!coordinates) {
+        count.textContent = 'Location needed';
+        status.textContent = 'Share location to find hospitals.';
+        return;
+      }
+
+      const userLatLng = [coordinates.latitude, coordinates.longitude];
+      if (currentLocationMarker) {
+        currentLocationMarker.setLatLng(userLatLng);
+      } else {
+        currentLocationMarker = L.circleMarker(userLatLng, {
+          radius: 9,
+          color: '#ffffff',
+          weight: 3,
+          fillColor: '#2674d9',
+          fillOpacity: 1
+        }).bindPopup('Your current location').addTo(dashboardLeafletMap);
+      }
+      if (!dashboardLeafletMap.getCenter().equals(L.latLng(userLatLng))) {
+        dashboardLeafletMap.setView(userLatLng, Math.max(dashboardLeafletMap.getZoom(), 13));
+      }
+
+      const movedEnough = !lastHospitalSearch || locationMovedEnough(coordinates.latitude, coordinates.longitude)
+        && Math.hypot(coordinates.latitude - lastHospitalSearch.latitude, coordinates.longitude - lastHospitalSearch.longitude) > 0.0005;
+      const searchIsDue = Date.now() - lastHospitalSearchTime > 30000;
+      if (!forceSearch && !movedEnough && !searchIsDue) return;
+
+      lastHospitalSearch = { ...coordinates };
+      lastHospitalSearchTime = Date.now();
+      count.textContent = 'Searching nearby';
+      status.textContent = 'Searching nearby hospitals...';
+
+      fetch(`/api/hospitals/nearby?lat=${encodeURIComponent(coordinates.latitude)}&lng=${encodeURIComponent(coordinates.longitude)}&radiusKm=20`)
+        .then(async (response) => {
+          const data = await response.json();
+          if (!response.ok) throw new Error(data.error || 'Hospital search failed.');
+          return data;
+        })
+        .then((data) => {
+          const hospitalMarkers = [];
+          const hospitalIds = new Set();
+          data.hospitals.forEach((hospital) => {
+            hospitalIds.add(hospital.id);
+            const popup = document.createElement('div');
+            const name = document.createElement('strong');
+            const address = document.createElement('p');
+            const distance = document.createElement('small');
+            name.textContent = hospital.name;
+            address.textContent = hospital.address;
+            distance.textContent = `${hospital.distanceKm.toFixed(1)} km away`;
+            popup.append(name, address, distance);
+            const selected = hospital.id === currentAcceptedHospitalId;
+            const markerStyle = {
+              radius: selected ? 12 : 9,
+              color: '#ffffff',
+              weight: selected ? 3 : 2,
+              fillColor: selected ? '#21845b' : '#c62836',
+              fillOpacity: 1
+            };
+            let hospitalMarker = nearbyHospitalMarkers.get(hospital.id);
+            if (hospitalMarker) {
+              hospitalMarker.setLatLng([hospital.latitude, hospital.longitude]);
+              hospitalMarker.setStyle(markerStyle);
+              hospitalMarker.setPopupContent(popup);
+            } else {
+              hospitalMarker = L.circleMarker([hospital.latitude, hospital.longitude], markerStyle)
+                .bindPopup(popup)
+                .addTo(hospitalMarkerLayer);
+            }
+            nearbyHospitalMarkers.set(hospital.id, hospitalMarker);
+            hospitalMarkers.push(hospitalMarker);
+          });
+          nearbyHospitalMarkers.forEach((marker, hospitalId) => {
+            if (!hospitalIds.has(hospitalId)) {
+              hospitalMarkerLayer.removeLayer(marker);
+              nearbyHospitalMarkers.delete(hospitalId);
+            }
+          });
+
+          count.textContent = `${data.count} nearby`;
+          if (data.count === 0) {
+            status.textContent = `No hospitals within ${data.radiusKm} km.`;
+          } else {
+            status.textContent = `${data.count} hospital${data.count === 1 ? '' : 's'} found within ${data.radiusKm} km.`;
+            if (!hasFitHospitalBounds) {
+              const bounds = L.featureGroup([currentLocationMarker, ...hospitalMarkers]).getBounds();
+              dashboardLeafletMap.fitBounds(bounds.pad(0.2), { maxZoom: 14 });
+              hasFitHospitalBounds = true;
+            }
+          }
+        })
+        .catch((error) => {
+          count.textContent = 'Search unavailable';
+          status.textContent = `${error.message} Start the API server with npm run dev.`;
+        });
+    }
+
+    document.getElementById('alertForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const submitButton = e.currentTarget.querySelector('button[type="submit"]');
+      if (submitButton.disabled) return;
+      submitButton.disabled = true;
+      submitButton.textContent = 'Sending Alert...';
+      const patientName = document.getElementById('name').value.trim();
+      const patientAge = document.getElementById('age').value.trim();
+      let patientLocation = document.getElementById('location').value.trim();
+      const patientPhoto = photoPreview.hidden ? '' : photoPreview.src || '';
+
+      try {
+        currentCoordinates = currentCoordinates || parseCoordinates(patientLocation);
+        if (!currentCoordinates) {
+          if (!navigator.geolocation) throw new Error('Location access is not supported by this browser.');
+          const position = await new Promise((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, {
+              enableHighAccuracy: true,
+              timeout: 15000,
+              maximumAge: 30000
+            });
+          }).catch((error) => {
+            throw new Error(`Share your current location before sending an alert: ${error.message}`);
+          });
+          currentCoordinates = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude
+          };
+        }
+        if (!patientLocation) {
+          patientLocation = `Lat: ${currentCoordinates.latitude.toFixed(6)}, Lng: ${currentCoordinates.longitude.toFixed(6)}`;
+          locationInput.value = patientLocation;
+        }
+        const response = await fetch('/api/alerts', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${userAccessToken}`
+          },
+          body: JSON.stringify({
+            name: patientName || 'Patient',
+            age: patientAge || 'N/A',
+            address: patientLocation,
+            location: patientLocation,
+            photo: patientPhoto,
+            latitude: currentCoordinates.latitude,
+            longitude: currentCoordinates.longitude
+          })
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.error || 'Alert could not be created.');
+        }
+
+        activeAlertDetails = {
+          id: data.alert.id,
+          name: data.alert.name,
+          age: data.alert.age,
+          address: data.alert.address,
+          latitude: data.alert.latitude,
+          longitude: data.alert.longitude,
+          createdAt: data.alert.createdAt
+        };
+        activeAlertId = data.alert.id;
+        sessionStorage.setItem('roadrescue.activeAlertId', activeAlertId);
+        sessionStorage.setItem('roadrescue.activeAlertDetails', JSON.stringify(activeAlertDetails));
+        showTrackingDashboard(data.alert.id);
+        submitButton.disabled = false;
+        submitButton.textContent = 'Send Alert';
+      } catch (error) {
+        const successMsg = document.getElementById('successMsg');
+        successMsg.textContent = error.message || 'Alert could not be sent.';
+        successMsg.hidden = false;
+        successMsg.style.color = '#d62f3d';
+        submitButton.disabled = false;
+        submitButton.textContent = 'Send Alert';
+      }
+    });
+
+    const loginStatus = document.getElementById('loginStatus');
+    const googleLoginBtn = document.getElementById('googleLoginBtn');
+    const googleClientId = '1055752280234-7kutblchmp1vb97tp3k60bnba2h4127s.apps.googleusercontent.com';
+    let googleTokenClient = null;
+    let googleLoginTimer = null;
+    let pendingRegistrationEmail = '';
+    let pendingRegistrationToken = '';
+
+    async function hasSavedEmergencyRequest() {
+      const savedAlertId = sessionStorage.getItem('roadrescue.activeAlertId');
+      if (!savedAlertId) {
+        activeAlertId = null;
+        return false;
+      }
+
+      const response = await fetch(`/api/alerts/${encodeURIComponent(savedAlertId)}/status`, {
+        headers: { Authorization: `Bearer ${userAccessToken}` }
+      });
+      if (response.status === 404) {
+        sessionStorage.removeItem('roadrescue.activeAlertId');
+        sessionStorage.removeItem('roadrescue.activeAlertDetails');
+        activeAlertId = null;
+        activeAlertDetails = null;
+        return false;
+      }
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Could not check your saved emergency request.');
+      activeAlertId = data.alert.id;
+      return true;
+    }
+
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPassword').value;
+      loginStatus.hidden = true;
+
+      try {
+        const response = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.error || 'Login failed.');
+        }
+        userAccessToken = data.accessToken;
+        sessionStorage.setItem('roadrescue.userAccessToken', userAccessToken);
+        sessionStorage.setItem('roadrescue.userName', data.user?.name || 'RoadRescue User');
+        if (await hasSavedEmergencyRequest()) showTrackingDashboard(activeAlertId);
+        else showAlertPage();
+      } catch (error) {
+        loginStatus.textContent = error.message || 'Login failed.';
+        loginStatus.hidden = false;
+      }
+    });
+    document.getElementById('showUserRegister').addEventListener('click', () => {
+      recordAppPage('user-register');
+      document.getElementById('loginForm').hidden = true;
+      document.getElementById('userOtpForm').hidden = true;
+      document.getElementById('userPasswordForm').hidden = true;
+      document.getElementById('userRegisterForm').hidden = false;
+      document.getElementById('userRegisterStatus').hidden = true;
+    });
+    document.getElementById('backToUserLogin').addEventListener('click', () => {
+      recordAppPage('user-login');
+      document.getElementById('userRegisterForm').hidden = true;
+      document.getElementById('loginForm').hidden = false;
+    });
+    document.getElementById('backToUserEmail').addEventListener('click', () => {
+      document.getElementById('userOtpForm').hidden = true;
+      document.getElementById('userRegisterForm').hidden = false;
+      document.getElementById('userOtpStatus').hidden = true;
+    });
+    document.getElementById('backToUserOtp').addEventListener('click', () => {
+      document.getElementById('userPasswordForm').hidden = true;
+      document.getElementById('userOtpForm').hidden = false;
+      document.getElementById('userPasswordStatus').hidden = true;
+    });
+    document.getElementById('userRegisterForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const registrationStatus = document.getElementById('userRegisterStatus');
+      const email = document.getElementById('userRegisterEmail').value.trim();
+      const submitButton = e.currentTarget.querySelector('button[type="submit"]');
+      registrationStatus.textContent = 'Sending verification code...';
+      registrationStatus.hidden = false;
+      submitButton.disabled = true;
+      pendingRegistrationEmail = email.toLowerCase();
+
+      try {
+        const response = await fetch('/api/auth/request-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+        const data = await response.json();
+        if (!response.ok && !data.codeAlreadySent) throw new Error(data.error || 'Could not send the verification code.');
+
+        pendingRegistrationToken = '';
+        document.getElementById('userOtpEmail').textContent = pendingRegistrationEmail;
+        document.getElementById('userOtpForm').reset();
+        document.getElementById('userRegisterForm').hidden = true;
+        document.getElementById('userOtpForm').hidden = false;
+        document.getElementById('userOtpStatus').textContent = data.message || data.error || 'Enter the 4-digit code sent to your email.';
+        document.getElementById('userOtpStatus').hidden = false;
+        document.getElementById('userOtp0').focus();
+      } catch (error) {
+        registrationStatus.textContent = error.message || 'Account registration failed.';
+        registrationStatus.hidden = false;
+      } finally {
+        submitButton.disabled = false;
+      }
+    });
+    document.getElementById('userOtpForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const otpStatus = document.getElementById('userOtpStatus');
+      const submitButton = e.currentTarget.querySelector('button[type="submit"]');
+      const otp = Array.from(document.querySelectorAll('.otp-input')).map((input) => input.value).join('');
+      otpStatus.textContent = 'Verifying code...';
+      otpStatus.hidden = false;
+      submitButton.disabled = true;
+
+      try {
+        const response = await fetch('/api/auth/verify-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: pendingRegistrationEmail, otp })
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Could not verify the code.');
+
+        pendingRegistrationToken = data.registrationToken;
+        document.getElementById('userOtpForm').hidden = true;
+        document.getElementById('userPasswordForm').hidden = false;
+        document.getElementById('userPasswordEmail').textContent = pendingRegistrationEmail;
+        document.getElementById('userPasswordStatus').hidden = true;
+        document.getElementById('userRegisterPassword').focus();
+      } catch (error) {
+        otpStatus.textContent = error.message || 'Could not verify the code.';
+        otpStatus.hidden = false;
+      } finally {
+        submitButton.disabled = false;
+      }
+    });
+    document.getElementById('userPasswordForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const passwordStatus = document.getElementById('userPasswordStatus');
+      const password = document.getElementById('userRegisterPassword').value;
+      const confirmPassword = document.getElementById('userRegisterPasswordConfirm').value;
+      const submitButton = e.currentTarget.querySelector('button[type="submit"]');
+      if (password !== confirmPassword) {
+        passwordStatus.textContent = 'The passwords do not match.';
+        passwordStatus.hidden = false;
+        return;
+      }
+      passwordStatus.textContent = 'Creating your account...';
+      passwordStatus.hidden = false;
+      submitButton.disabled = true;
+
+      try {
+        const response = await fetch('/api/auth/complete-registration', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: pendingRegistrationEmail,
+            password,
+            registrationToken: pendingRegistrationToken
+          })
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Account registration failed.');
+
+        document.getElementById('userPasswordForm').reset();
+        document.getElementById('loginEmail').value = pendingRegistrationEmail;
+        document.getElementById('userPasswordForm').hidden = true;
+        document.getElementById('loginForm').hidden = false;
+        recordAppPage('user-login');
+        loginStatus.textContent = data.message || 'Your account is ready. Sign in with your email and password.';
+        loginStatus.hidden = false;
+        pendingRegistrationEmail = '';
+        pendingRegistrationToken = '';
+      } catch (error) {
+        passwordStatus.textContent = error.message || 'Account registration failed.';
+        passwordStatus.hidden = false;
+      } finally {
+        submitButton.disabled = false;
+      }
+    });
+    document.querySelectorAll('.otp-input').forEach((input, index, inputs) => {
+      input.addEventListener('input', () => {
+        input.value = input.value.replace(/\D/g, '').slice(-1);
+        if (input.value && index < inputs.length - 1) inputs[index + 1].focus();
+      });
+      input.addEventListener('keydown', (event) => {
+        if (event.key === 'Backspace' && !input.value && index > 0) inputs[index - 1].focus();
+      });
+      input.addEventListener('paste', (event) => {
+        const pastedCode = event.clipboardData.getData('text').replace(/\D/g, '').slice(0, 4);
+        if (!pastedCode) return;
+        event.preventDefault();
+        [...pastedCode].forEach((digit, digitIndex) => {
+          inputs[digitIndex].value = digit;
+        });
+        inputs[Math.min(pastedCode.length, inputs.length - 1)].focus();
+      });
+    });
+
+    const hospitalLoginStatus = document.getElementById('hospitalLoginStatus');
+    let currentHospital = null;
+    let hospitalAccessToken = '';
+    let hospitalDashboardRefreshTimer = null;
+    let hospitalDashboardRendering = false;
+    let hospitalRegistrationMap = null;
+    let hospitalRegistrationMarker = null;
+    function setHospitalRegistrationCoordinates(latitude, longitude) {
+      const lat = Number(latitude);
+      const lng = Number(longitude);
+      if (!Number.isFinite(lat) || lat < -90 || lat > 90
+        || !Number.isFinite(lng) || lng < -180 || lng > 180
+        || (lat === 0 && lng === 0)) {
+        throw new Error('Choose a valid hospital location on the map.');
+      }
+      document.getElementById('hospitalLatitude').value = lat.toFixed(7);
+      document.getElementById('hospitalLongitude').value = lng.toFixed(7);
+      if (hospitalRegistrationMarker) {
+        hospitalRegistrationMarker.setLatLng([lat, lng]);
+      }
+      document.getElementById('hospitalMapPinHint').textContent = 'Location confirmed. Click the map or drag the pin to adjust it.';
+      const registrationStatus = document.getElementById('hospitalRegisterStatus');
+      if (registrationStatus.classList.contains('location-confirmation')) {
+        registrationStatus.textContent = 'Location confirmed. Submit to complete registration.';
+      }
+    }
+
+    function parseMapCoordinates(value) {
+      try {
+        const url = new URL(value);
+        const queryCoordinates = url.searchParams.get('q') || url.searchParams.get('query');
+        if (queryCoordinates) {
+          const queryMatch = queryCoordinates.match(/^\s*(-?\d{1,2}(?:\.\d+)?)[,\s]+(-?\d{1,3}(?:\.\d+)?)\s*$/);
+          if (queryMatch) return { latitude: Number(queryMatch[1]), longitude: Number(queryMatch[2]) };
+        }
+      } catch {
+        // The input may be a plain address or a raw coordinate pair.
+      }
+      const patterns = [
+        /@(-?\d{1,2}(?:\.\d+)?),\s*(-?\d{1,3}(?:\.\d+)?)/,
+        /!3d(-?\d{1,2}(?:\.\d+)?)!4d(-?\d{1,3}(?:\.\d+)?)/,
+        /[?&](?:q|query)=(-?\d{1,2}(?:\.\d+)?)[,%20+]+(-?\d{1,3}(?:\.\d+)?)/i,
+        /^\s*(-?\d{1,2}(?:\.\d+)?)[,\s]+(-?\d{1,3}(?:\.\d+)?)\s*$/
+      ];
+      for (const pattern of patterns) {
+        const match = value.match(pattern);
+        if (match) return { latitude: Number(match[1]), longitude: Number(match[2]) };
+      }
+      return null;
+    }
+
+    document.getElementById('hospitalAddress').addEventListener('input', () => {
+      document.getElementById('hospitalLatitude').value = '';
+      document.getElementById('hospitalLongitude').value = '';
+      document.getElementById('hospitalLocationPicker').hidden = true;
+      document.getElementById('hospitalLocationStatus').hidden = true;
+      document.getElementById('hospitalRegisterStatus').classList.remove('location-confirmation');
+    });
+
+    function openHospitalRegistrationMap(latitude, longitude) {
+      const picker = document.getElementById('hospitalLocationPicker');
+      picker.hidden = false;
+      if (!window.L) {
+        throw new Error('The map could not load. Check your internet connection and try again.');
+      }
+      const position = [Number(latitude), Number(longitude)];
+      if (!hospitalRegistrationMap) {
+        hospitalRegistrationMap = L.map('hospitalRegistrationMap').setView(position, 17);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 20,
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>'
+        }).addTo(hospitalRegistrationMap);
+        hospitalRegistrationMap.on('click', (event) => {
+          setHospitalRegistrationCoordinates(event.latlng.lat, event.latlng.lng);
+        });
+      }
+      hospitalRegistrationMap.setView(position, 17);
+      if (hospitalRegistrationMarker) {
+        hospitalRegistrationMarker.setLatLng(position);
+      } else {
+        hospitalRegistrationMarker = L.marker(position, { draggable: true })
+          .addTo(hospitalRegistrationMap);
+        hospitalRegistrationMarker.on('dragend', (event) => {
+          const position = event.target.getLatLng();
+          setHospitalRegistrationCoordinates(position.lat, position.lng);
+        });
+      }
+      window.setTimeout(() => hospitalRegistrationMap.invalidateSize(), 0);
+    }
+
+    const priorityMeta = {
+      critical: { label: 'Critical', className: 'priority-critical' },
+      high: { label: 'High', className: 'priority-high' },
+      medium: { label: 'Medium', className: 'priority-medium' },
+      low: { label: 'Low', className: 'priority-low' }
+    };
+
+    function escapeHtml(value) {
+      return String(value ?? '').replace(/[&<>"']/g, (character) => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      })[character]);
+    }
+
+    const requestAddressCache = new Map();
+    function getRequestDisplayAddress(request) {
+      const latitude = Number(request.latitude);
+      const longitude = Number(request.longitude);
+      const fallbackAddress = typeof request.address === 'string' ? request.address.trim() : '';
+      if (!Number.isFinite(latitude) || latitude < -90 || latitude > 90
+        || !Number.isFinite(longitude) || longitude < -180 || longitude > 180) {
+        return Promise.resolve(fallbackAddress || 'Address unavailable');
+      }
+
+      const cacheKey = `${latitude.toFixed(6)},${longitude.toFixed(6)}`;
+      if (!requestAddressCache.has(cacheKey)) {
+        const lookup = fetch(`/api/reverse-geocode?lat=${encodeURIComponent(latitude)}&lng=${encodeURIComponent(longitude)}`)
+          .then(async (response) => {
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'Address lookup failed.');
+            return data.address || fallbackAddress || 'Address unavailable';
+          })
+          .catch((error) => {
+            console.error('Could not resolve emergency request address:', error);
+            return fallbackAddress || 'Address unavailable';
+          });
+        requestAddressCache.set(cacheKey, lookup);
+      }
+      return requestAddressCache.get(cacheKey);
+    }
+
+    async function renderHospitalDashboard() {
+      const requestList = document.getElementById('hospitalRequestList');
+      const nearbyCount = document.getElementById('hospitalNearbyCount');
+      const availableCount = document.getElementById('hospitalAvailableCount');
+      const acceptedCount = document.getElementById('hospitalAcceptedCount');
+      const hospitalDashboardTitle = document.getElementById('hospitalDashboardTitle');
+      const ambulanceList = document.getElementById('ambulanceList');
+      const requestStatus = document.getElementById('hospitalRequestStatus');
+
+      if (!currentHospital || hospitalDashboardRendering) return;
+      hospitalDashboardRendering = true;
+      hospitalDashboardTitle.textContent = currentHospital.name;
+      requestStatus.hidden = true;
+
+      try {
+        const headers = { Authorization: `Bearer ${hospitalAccessToken}` };
+        const [requestResponse, ambulanceResponse] = await Promise.all([
+          fetch(`/api/dispatch/requests?hospitalId=${encodeURIComponent(currentHospital.id)}`, { headers }),
+          fetch('/api/ambulances', { headers })
+        ]);
+        const [requestData, ambulanceData] = await Promise.all([requestResponse.json(), ambulanceResponse.json()]);
+        if (!requestResponse.ok) throw new Error(requestData.error || 'Could not load emergency requests.');
+        if (!ambulanceResponse.ok) throw new Error(ambulanceData.error || 'Could not load ambulance units.');
+
+        const activeStatuses = ['waiting', 'pending', 'new', 'accepted'];
+        const activeRequests = requestData.alerts.filter((request) => activeStatuses.includes(request.status));
+        nearbyCount.textContent = String(activeRequests.length);
+        availableCount.textContent = String(activeRequests.filter((request) => ['waiting', 'pending', 'new'].includes(request.status)).length);
+        acceptedCount.textContent = String(activeRequests.filter((request) => request.status === 'accepted').length);
+
+        const nextRequestList = document.createElement('div');
+        const requestAddresses = await Promise.all(
+          activeRequests.map((request) => getRequestDisplayAddress(request))
+        );
+        requestList.classList.toggle('has-active-requests', activeRequests.length > 0);
+        if (activeRequests.length === 0) {
+          nextRequestList.innerHTML = '<div class="hospital-request-card empty"><h3>No active requests</h3></div>';
+        }
+
+        activeRequests.forEach((request, index) => {
+          const priority = priorityMeta[request.priority] || priorityMeta.medium;
+          const card = document.createElement('article');
+          card.className = 'hospital-request-card';
+          const isAccepted = request.status === 'accepted';
+          const addressText = escapeHtml(requestAddresses[index]);
+          const patientImage = typeof request.photo === 'string' && request.photo.startsWith('data:image/')
+            ? `<img class="request-patient-photo" src="${escapeHtml(request.photo)}" alt="Emergency photo">`
+            : '<div class="request-patient-photo request-patient-photo-empty" role="img" aria-label="No emergency photo uploaded">No photo uploaded</div>';
+          const actionMarkup = isAccepted
+            ? '<span class="request-status-badge accepted">Accepted</span>'
+            : `
+              <div class="request-actions">
+                <button type="button" class="accept-btn" data-id="${escapeHtml(request.id)}" data-action="accept">Accept</button>
+                <button type="button" class="pass-btn" data-id="${escapeHtml(request.id)}" data-action="pass">Pass to next hospital</button>
+              </div>
+            `;
+
+          card.innerHTML = `
+            <div class="request-card-header">
+              <p class="request-type">Emergency alert</p>
+              <div class="request-meta-right">
+                <span class="request-priority ${priority.className}">${priority.label}</span>
+                <span class="request-distance">${Number(request.distanceKm).toFixed(1)} km</span>
+              </div>
+            </div>
+            <div class="request-patient-grid${patientImage ? ' has-photo' : ''}">
+              ${patientImage}
+              <div class="request-patient-copy">
+                <div class="request-patient-identity">
+                  <div class="request-patient-detail">
+                    <span class="request-detail-label">Name</span>
+                    <strong>${escapeHtml(request.name)}</strong>
+                  </div>
+                  <div class="request-patient-detail request-age">
+                    <span class="request-detail-label">Age</span>
+                    <strong>${escapeHtml(request.age)}</strong>
+                  </div>
+                </div>
+                <div class="request-patient-detail request-address-line" title="${addressText}">
+                  <span class="request-detail-label">Address</span>
+                  <strong>${addressText}</strong>
+                </div>
+              </div>
+            </div>
+            <p class="request-note">${isAccepted ? 'Accepted. Assign an available ambulance.' : `${priority.label} priority case.`}</p>
+            ${actionMarkup}
+          `;
+          nextRequestList.appendChild(card);
+        });
+        if (requestList.innerHTML !== nextRequestList.innerHTML) {
+          requestList.innerHTML = nextRequestList.innerHTML;
+        }
+
+        const acceptedRequests = activeRequests.filter((request) => request.status === 'accepted');
+        const nextAmbulanceList = document.createElement('div');
+        if (ambulanceData.ambulances.length === 0) {
+          nextAmbulanceList.innerHTML = '<p>No ambulances available.</p>';
+        }
+        ambulanceData.ambulances.forEach((ambulance) => {
+          const isReady = ambulance.status === 'ready';
+          const unit = document.createElement('div');
+          unit.className = 'ambulance-item';
+          const requestOptions = acceptedRequests.map((request) =>
+            `<option value="${escapeHtml(request.id)}">${escapeHtml(request.name)} - ${escapeHtml(request.address)}</option>`
+          ).join('');
+          const statusLabel = isReady ? 'Ready' : ambulance.status;
+          unit.innerHTML = `
+            <div class="ambulance-head">
+              <span class="ambulance-tag">${escapeHtml(ambulance.vanNumber)}</span>
+              <span class="ambulance-state ${isReady ? 'ready' : 'active'}">${escapeHtml(statusLabel)}</span>
+            </div>
+            <div class="ambulance-meta">
+              <strong>${ambulance.driverName
+                ? `Driver: ${escapeHtml(ambulance.driverName)}`
+                : 'Driver not assigned'}</strong>
+              ${ambulance.phone
+                ? `<a href="tel:${escapeHtml(ambulance.phone)}">${escapeHtml(ambulance.phone)}</a>`
+                : ''}
+            </div>
+            ${isReady ? `
+              <select class="ambulance-alert-select" aria-label="Request for ${escapeHtml(ambulance.vanNumber)}" data-ambulance-id="${escapeHtml(ambulance.id)}" ${acceptedRequests.length ? '' : 'disabled'}>
+                <option value="">Select accepted request</option>${requestOptions}
+              </select>
+              <button type="button" class="assign-btn" data-action="assign" data-id="${escapeHtml(ambulance.id)}" ${acceptedRequests.length ? '' : 'disabled'}>Assign</button>
+            ` : ''}
+          `;
+          nextAmbulanceList.appendChild(unit);
+        });
+        if (ambulanceList.innerHTML !== nextAmbulanceList.innerHTML) {
+          ambulanceList.innerHTML = nextAmbulanceList.innerHTML;
+        }
+      } catch (error) {
+        requestStatus.textContent = error.message;
+        requestStatus.hidden = false;
+      } finally {
+        hospitalDashboardRendering = false;
+      }
+    }
+
+    document.addEventListener('click', async (event) => {
+      const target = event.target.closest('button[data-action]');
+      if (!target || !currentHospital) return;
+      const action = target.dataset.action;
+      target.disabled = true;
+      try {
+        let endpoint;
+        let body;
+        if (action === 'assign') {
+          const selector = document.querySelector(`.ambulance-alert-select[data-ambulance-id="${CSS.escape(target.dataset.id)}"]`);
+          if (!selector?.value) throw new Error('Select an accepted request first.');
+          endpoint = '/api/ambulances/assign';
+          body = { ambulanceId: target.dataset.id, alertId: selector.value, hospitalId: currentHospital.id };
+        } else {
+          endpoint = `/api/dispatch/${encodeURIComponent(target.dataset.id)}/${action}`;
+          body = { hospitalId: currentHospital.id };
+        }
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${hospitalAccessToken}` },
+          body: JSON.stringify(body)
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Dispatch update failed.');
+        await renderHospitalDashboard();
+      } catch (error) {
+        const requestStatus = document.getElementById('hospitalRequestStatus');
+        requestStatus.textContent = error.message;
+        requestStatus.hidden = false;
+        target.disabled = false;
+      }
+    });
+
+    document.getElementById('hospitalLoginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('hospitalLoginEmail').value.trim();
+      const password = document.getElementById('hospitalLoginPassword').value;
+
+      try {
+        const response = await fetch('/api/hospitals/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.error || 'Hospital login failed.');
+        }
+
+        const hospitalName = data.hospital.name || 'City Hospital';
+        const hospitalAddress = data.hospital.address || 'Near the main city emergency corridor';
+        currentHospital = { ...data.hospital, name: hospitalName, address: hospitalAddress };
+        hospitalAccessToken = data.accessToken;
+        document.getElementById('hospitalDashboardTitle').textContent = hospitalName;
+        document.getElementById('hospitalLoginForm').hidden = true;
+        showHospitalDashboard();
+      } catch (error) {
+        document.getElementById('hospitalLoginStatus').textContent = error.message || 'Hospital login failed.';
+        document.getElementById('hospitalLoginStatus').hidden = false;
+      }
+    });
+    document.getElementById('showHospitalRegister').addEventListener('click', () => {
+      recordAppPage('hospital-register');
+      document.getElementById('hospitalLoginForm').hidden = true;
+      document.getElementById('hospitalRegisterForm').hidden = false;
+      document.getElementById('hospitalRegisterStatus').hidden = true;
+    });
+    document.getElementById('backToHospitalLogin').addEventListener('click', () => {
+      recordAppPage('hospital-login');
+      document.getElementById('hospitalRegisterForm').hidden = true;
+      document.getElementById('hospitalLoginForm').hidden = false;
+    });
+    document.getElementById('hospitalRegisterForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const registrationStatus = document.getElementById('hospitalRegisterStatus');
+      const hospitalLoginStatus = document.getElementById('hospitalLoginStatus');
+      const hospitalName = document.getElementById('hospitalName').value.trim();
+      const hospitalAddress = document.getElementById('hospitalAddress').value.trim();
+      const submitButton = e.currentTarget.querySelector('button[type="submit"]');
+
+      if (!hospitalName || !hospitalAddress) {
+        registrationStatus.textContent = 'Please add the hospital name and address.';
+        registrationStatus.hidden = false;
+        return;
+      }
+
+      submitButton.disabled = true;
+      registrationStatus.classList.remove('location-confirmation');
+      registrationStatus.textContent = 'Submitting registration...';
+      registrationStatus.hidden = false;
+
+      try {
+        let latitude = document.getElementById('hospitalLatitude').value;
+        let longitude = document.getElementById('hospitalLongitude').value;
+        if (!latitude || !longitude) {
+          registrationStatus.textContent = 'Verifying hospital address...';
+          const coordinatesFromAddress = parseMapCoordinates(hospitalAddress);
+          if (coordinatesFromAddress) {
+            setHospitalRegistrationCoordinates(
+              coordinatesFromAddress.latitude,
+              coordinatesFromAddress.longitude
+            );
+          } else {
+            const geocodeResponse = await fetch(
+              `/api/geocode?address=${encodeURIComponent(hospitalAddress)}`
+            );
+            const geocodeData = await geocodeResponse.json();
+            if (!geocodeResponse.ok) {
+              throw new Error(geocodeData.error || 'Could not find the hospital address.');
+            }
+            const { latitude: resolvedLatitude, longitude: resolvedLongitude, approximate } = geocodeData.location;
+            if (approximate) {
+              document.getElementById('hospitalLatitude').value = '';
+              document.getElementById('hospitalLongitude').value = '';
+              document.getElementById('hospitalMapPinHint').textContent =
+                'Select the hospital entrance on the map.';
+              openHospitalRegistrationMap(resolvedLatitude, resolvedLongitude);
+              registrationStatus.textContent = 'We found the area. Select the hospital entrance on the map to continue.';
+              registrationStatus.classList.add('location-confirmation');
+              document.getElementById('hospitalLocationPicker')
+                .scrollIntoView({ behavior: 'smooth', block: 'center' });
+              window.setTimeout(() => document.getElementById('hospitalRegistrationMap').focus(), 400);
+              return;
+            }
+            setHospitalRegistrationCoordinates(resolvedLatitude, resolvedLongitude);
+          }
+          latitude = document.getElementById('hospitalLatitude').value;
+          longitude = document.getElementById('hospitalLongitude').value;
+        }
+
+        const hospitalEmail = document.getElementById('hospitalRegisterEmail').value.trim();
+        const hospitalPassword = document.getElementById('hospitalRegisterPassword').value;
+
+        const response = await fetch('/api/hospitals', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: hospitalName,
+            email: hospitalEmail,
+            password: hospitalPassword,
+            address: hospitalAddress,
+            latitude,
+            longitude
+          })
+        });
+
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(data.error || 'Hospital registration is not enabled yet.');
+        }
+
+        document.getElementById('hospitalRegisterForm').reset();
+        document.getElementById('hospitalLocationPicker').hidden = true;
+        registrationStatus.classList.remove('location-confirmation');
+        recordAppPage('hospital-login');
+        document.getElementById('hospitalRegisterForm').hidden = true;
+        document.getElementById('hospitalLoginForm').hidden = false;
+        hospitalLoginStatus.textContent = data.message || 'Registration complete. You can sign in now.';
+        hospitalLoginStatus.hidden = false;
+        registrationStatus.hidden = true;
+      } catch (error) {
+        registrationStatus.textContent = error.message || 'Hospital registration could not be completed.';
+        if (/exact hospital pin/i.test(registrationStatus.textContent)) {
+          registrationStatus.textContent = 'We found the area. Select the hospital entrance on the map to continue.';
+          registrationStatus.classList.add('location-confirmation');
+          document.getElementById('hospitalLocationPicker').scrollIntoView({ behavior: 'smooth', block: 'center' });
+          window.setTimeout(() => document.getElementById('hospitalRegistrationMap').focus(), 400);
+        }
+        registrationStatus.hidden = false;
+      } finally {
+        submitButton.disabled = false;
+      }
+    });
+
+    function showGoogleLoginStatus(message) {
+      window.clearTimeout(googleLoginTimer);
+      loginStatus.textContent = message;
+      loginStatus.hidden = false;
+      googleLoginBtn.disabled = false;
+    }
+
+    function initializeGoogleSignIn() {
+      if (!window.google?.accounts?.oauth2) {
+        showGoogleLoginStatus('Google sign-in could not be loaded. Check your connection and try again.');
+        return;
+      }
+
+      googleTokenClient = window.google.accounts.oauth2.initTokenClient({
+        client_id: googleClientId,
+        scope: 'openid email profile',
+        callback: async (response) => {
+          if (response.error) {
+            showGoogleLoginStatus('Google sign-in was cancelled or could not be completed.');
+            return;
+          }
+
+          try {
+            const loginResponse = await fetch('/api/auth/google', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ accessToken: response.access_token })
+            });
+            const data = await loginResponse.json();
+            if (!loginResponse.ok) throw new Error(data.error || 'Google sign-in failed.');
+            window.clearTimeout(googleLoginTimer);
+            googleLoginBtn.disabled = false;
+            loginStatus.hidden = true;
+            userAccessToken = data.accessToken;
+            sessionStorage.setItem('roadrescue.userAccessToken', userAccessToken);
+            sessionStorage.setItem('roadrescue.userName', data.user?.name || 'RoadRescue User');
+            if (await hasSavedEmergencyRequest()) showTrackingDashboard(activeAlertId);
+            else showAlertPage();
+          } catch (error) {
+            showGoogleLoginStatus(error.message || 'Google sign-in could not be completed.');
+          }
+        },
+        error_callback: (error) => {
+          const message = error.type === 'popup_failed_to_open'
+            ? 'Allow popups for this site, then try Google sign-in again.'
+            : 'Google sign-in was closed or could not be completed.';
+          showGoogleLoginStatus(message);
+        }
+      });
+    }
+
+    googleLoginBtn.addEventListener('click', () => {
+      if (!googleTokenClient) {
+        showGoogleLoginStatus('Google sign-in is still loading. Try again in a moment.');
+        return;
+      }
+      googleLoginBtn.disabled = true;
+      loginStatus.textContent = 'Opening Google account chooser...';
+      loginStatus.hidden = false;
+      googleLoginTimer = window.setTimeout(() => {
+        showGoogleLoginStatus('Google sign-in did not respond. Check popup settings and try again.');
+      }, 45000);
+      try {
+        googleTokenClient.requestAccessToken({ prompt: 'select_account' });
+      } catch (error) {
+        showGoogleLoginStatus('Google sign-in could not be started. Check your OAuth client settings.');
+      }
+    });
+
+    const googleIdentityScript = document.createElement('script');
+    googleIdentityScript.src = 'https://accounts.google.com/gsi/client';
+    googleIdentityScript.async = true;
+    googleIdentityScript.onload = initializeGoogleSignIn;
+    googleIdentityScript.onerror = () => showGoogleLoginStatus('Google sign-in could not be loaded. Check your connection and try again.');
+    document.head.appendChild(googleIdentityScript);
+
+    function restoreAppHistory(state) {
+      restoringAppHistory = true;
+      try {
+        switch (state?.page) {
+          case 'user-login':
+            showLoginPage();
+            break;
+          case 'user-register':
+            showLoginPage();
+            document.getElementById('loginForm').hidden = true;
+            document.getElementById('userRegisterForm').hidden = false;
+            break;
+          case 'hospital-login':
+            showHospitalLoginPage();
+            break;
+          case 'hospital-register':
+            showHospitalLoginPage();
+            document.getElementById('hospitalLoginForm').hidden = true;
+            document.getElementById('hospitalRegisterForm').hidden = false;
+            break;
+          case 'alert':
+            showAlertPage();
+            break;
+          case 'response-dashboard':
+            if (activeAlertId && state.alertId === activeAlertId) {
+              showTrackingDashboard(state.alertId);
+            } else {
+              showHomePage();
+            }
+            break;
+          case 'hospital-dashboard':
+            if (currentHospital) showHospitalDashboard();
+            else showHospitalLoginPage();
+            break;
+          default:
+            showHomePage();
+        }
+      } finally {
+        restoringAppHistory = false;
+      }
+    }
+
+    document.getElementById('alertForm').reset();
+    photoPreview.removeAttribute('src');
+    photoPreview.hidden = true;
+    document.getElementById('successMsg').hidden = true;
+    currentCoordinates = null;
+    activeAlertDetails = null;
+    history.replaceState({ roadRescue: true, page: 'home' }, '', `${location.pathname}${location.search}`);
+    window.addEventListener('popstate', (event) => restoreAppHistory(event.state));
+  </script>
+</body>
+</html>

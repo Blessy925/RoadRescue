@@ -1,0 +1,19 @@
+{
+  "name": "roadrescue",
+  "version": "1.0.0",
+  "description": "RoadRescue - accident alert and hospital dispatch site",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "nodemailer": "^6.10.0"
+  },
+  "devDependencies": {
+    "live-server": "^1.2.2"
+  }
+}

@@ -1,0 +1,90 @@
+[
+  {
+    "id": "demo-hospital",
+    "name": "City Hospital",
+    "email": "demo@hospital.com",
+    "address": "Near the main city emergency corridor",
+    "latitude": 12.9716,
+    "longitude": 77.5948,
+    "active": true,
+    "registeredAt": "2026-10-02T09:30:54.280Z",
+    "status": "approved"
+  },
+  {
+    "id": "ddc1d0ca-7c6a-48b4-b411-d04cfafd7c34",
+    "name": "Test Hospital",
+    "address": "Door No 22, Opposite Gandemma Temple, Near Electronic City, Bengaluru, Karnataka 560100, India",
+    "latitude": 12.9716,
+    "longitude": 77.5948,
+    "active": false,
+    "registeredAt": "2026-10-02T08:48:36.484Z",
+    "email": "hospital-ddc1d0ca-7c6a-48b4-b411-d04cfafd7c34@demo.local",
+    "status": "pending"
+  },
+  {
+    "id": "18e5fad3-1891-4f4d-b3a4-b885cccd3584",
+    "name": "Test Hospital",
+    "address": "Door No 22, Opposite Gandemma Temple, Near Electronic City, Bengaluru, Karnataka 560100, India",
+    "latitude": 12.9716,
+    "longitude": 77.5948,
+    "active": false,
+    "registeredAt": "2026-10-02T08:50:59.440Z",
+    "email": "hospital-18e5fad3-1891-4f4d-b3a4-b885cccd3584@demo.local",
+    "status": "pending"
+  },
+  {
+    "id": "76aaf7e3-0359-438e-811f-b7adf337bbc6",
+    "name": "Medicover Hospitals",
+    "address": "Door No 22, Opposite Gandemma Temple, Near BHEL Circle, Road, Chanda Nagar, Ramachandrapuram (BHEL Township), Hyderabad, Telangana 502032",
+    "latitude": 17.5086345,
+    "longitude": 78.3018685,
+    "active": true,
+    "registeredAt": "2026-10-02T08:51:16.391Z",
+    "email": "medicover-hyderabad@demo.local",
+    "status": "approved"
+  },
+  {
+    "id": "d0bd21ce-584d-438c-be38-851c5adb95f5",
+    "name": "Yousuf Memorial Hospital",
+    "email": "yousuf-memorial@demo.local",
+    "address": "NH163, Ammerguda, Moinabad, Telangana 501404, India",
+    "latitude": 17.3263516,
+    "longitude": 78.2750511,
+    "active": true,
+    "registeredAt": "2026-10-02T11:28:29.029Z",
+    "status": "approved"
+  },
+  {
+    "id": "ec544b99-c13f-41a0-9a77-ad34faef32cb",
+    "name": "TIRUMALA HOSPITAL",
+    "email": "info@tirumalahospitals.in",
+    "address": "TPR Enclave, Plot No. 7, Sri Shiridi Sai Colony, Opposite Monday Market, Beeramguda, Ameenpur, Mandal, Telangana 502032",
+    "latitude": 17.5163634,
+    "longitude": 78.3009901,
+    "status": "approved",
+    "active": true,
+    "registeredAt": "2026-10-22T14:19:23.760Z"
+  },
+  {
+    "id": "cf17121f-85ed-4439-8c55-94d72eea79ef",
+    "name": "Shree Veda Multispecialty Hospital",
+    "email": "shreeveda@hospital.com",
+    "address": "NH 65, Ashok Nagar, Ramachandrapuram, Hyderabad, Telangana 500032",
+    "latitude": 17.5051179,
+    "longitude": 78.3092976,
+    "status": "approved",
+    "active": true,
+    "registeredAt": "2026-10-22T15:33:14.975Z"
+  },
+  {
+    "id": "b40b7f0b-4658-46a8-afa4-d75ad9619208",
+    "name": "Continental Hospitals",
+    "email": "queries@continentalhospitals.com",
+    "address": "2, 2 i t park road hyderabad, Peerancheru, TG 500032",
+    "latitude": 17.3575612,
+    "longitude": 78.3777856,
+    "status": "approved",
+    "active": true,
+    "registeredAt": "2026-10-23T07:58:48.236Z"
+  }
+]

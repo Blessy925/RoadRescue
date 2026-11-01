@@ -1,0 +1,42 @@
+/* RoadRescue theme: dark maroon background on every page except Home */
+.page:not(#home) {
+  background-color: #300203 !important;
+  background-image: radial-gradient(rgba(255, 70, 70, 0.045) 1px, transparent 1.3px) !important;
+  background-size: 4px 4px !important;
+}
+body:has(.page.active:not(#home)) { background: #300203 !important; }
+.login-overlay,
+.alert-overlay { background: transparent !important; }
+
+/* Hospital dashboard: add-ambulance form */
+.add-ambulance-form {
+  display: grid;
+  gap: 8px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
+}
+.add-ambulance-form label { font-size: 0.85rem; font-weight: 600; }
+.add-ambulance-form input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.08);
+  color: inherit;
+  font: inherit;
+}
+.add-ambulance-form input:focus-visible { outline: 2px solid #ff8a93; outline-offset: 2px; }
+.add-ambulance-btn {
+  margin-top: 6px;
+  padding: 11px 14px;
+  border: 0;
+  border-radius: 10px;
+  background: #e63946;
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.add-ambulance-btn:disabled { opacity: 0.6; cursor: wait; }
+.add-ambulance-status { margin: 4px 0 0; font-size: 0.88rem; }

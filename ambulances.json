@@ -1,0 +1,74 @@
+[
+  {
+    "id": "amb-van-12",
+    "vanNumber": "Van 12",
+    "driverName": "Ramesh",
+    "phone": "+91 98765 43210",
+    "status": "ready",
+    "hospitalId": "76aaf7e3-0359-438e-811f-b7adf337bbc6"
+  },
+  {
+    "id": "amb-van-18",
+    "vanNumber": "Van 18",
+    "driverName": "Suresh",
+    "phone": "+91 98123 45678",
+    "status": "ready",
+    "hospitalId": "76aaf7e3-0359-438e-811f-b7adf337bbc6"
+  },
+  {
+    "id": "amb-van-25",
+    "vanNumber": "Van 25",
+    "driverName": "Karthik",
+    "phone": "+91 98761 23456",
+    "status": "ready",
+    "hospitalId": "76aaf7e3-0359-438e-811f-b7adf337bbc6"
+  },
+  {
+    "id": "amb-van-31",
+    "vanNumber": "Van 31",
+    "driverName": "Naveen",
+    "phone": "+91 90000 00131",
+    "status": "ready",
+    "hospitalId": "76aaf7e3-0359-438e-811f-b7adf337bbc6"
+  },
+  {
+    "id": "amb-van-42",
+    "vanNumber": "Van 42",
+    "driverName": "Priya",
+    "phone": "+91 90000 00142",
+    "status": "ready",
+    "hospitalId": "76aaf7e3-0359-438e-811f-b7adf337bbc6"
+  },
+  {
+    "id": "amb-van-56",
+    "vanNumber": "Van 56",
+    "driverName": "Imran",
+    "phone": "+91 90000 00156",
+    "status": "ready",
+    "hospitalId": "d0bd21ce-584d-438c-be38-851c5adb95f5"
+  },
+  {
+    "id": "amb-van-67",
+    "vanNumber": "Van 67",
+    "driverName": "Driver 67",
+    "phone": "",
+    "status": "ready",
+    "hospitalId": "d0bd21ce-584d-438c-be38-851c5adb95f5"
+  },
+  {
+    "id": "amb-van-68",
+    "vanNumber": "Van 68",
+    "driverName": "Driver 68",
+    "phone": "",
+    "status": "ready",
+    "hospitalId": "d0bd21ce-584d-438c-be38-851c5adb95f5"
+  },
+  {
+    "id": "amb-van-69",
+    "vanNumber": "Van 69",
+    "driverName": "Driver 69",
+    "phone": "",
+    "status": "ready",
+    "hospitalId": "d0bd21ce-584d-438c-be38-851c5adb95f5"
+  }
+]
