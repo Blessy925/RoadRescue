@@ -133,7 +133,7 @@
       <label for="hospitalAddress">Hospital address</label>
       <input type="text" id="hospitalAddress" name="address" placeholder="Street, city, state, postal code" autocomplete="street-address" required>
 
-      <div id="hospitalLocationStatus" class="hospital-location-status" role="status" aria-live="polite" hidden></div>
+      <button type="button" id="pickHospitalLocation" class="hospital-map-picker-btn">Choose hospital location on map</button>       <div id="hospitalLocationStatus" class="hospital-location-status" role="status" aria-live="polite" hidden></div>
       <div id="hospitalLocationPicker" class="map-box hospital-registration-map-box" hidden>
         <div id="hospitalMapPinHint" class="hospital-map-instruction">Select the hospital entrance on the map.</div>
         <div id="hospitalRegistrationMap" tabindex="-1" aria-label="Click the exact hospital entrance to place its map pin" style="height: 300px;"></div>
@@ -1358,7 +1358,7 @@
       document.getElementById('hospitalRegisterStatus').classList.remove('location-confirmation');
     });
 
-    function openHospitalRegistrationMap(latitude, longitude) {
+    function openHospitalRegistrationMap(latitude, longitude, zoom = 17) {
       const picker = document.getElementById('hospitalLocationPicker');
       picker.hidden = false;
       if (!window.L) {
@@ -1375,7 +1375,7 @@
           setHospitalRegistrationCoordinates(event.latlng.lat, event.latlng.lng);
         });
       }
-      hospitalRegistrationMap.setView(position, 17);
+      hospitalRegistrationMap.setView(position, zoom);
       if (hospitalRegistrationMarker) {
         hospitalRegistrationMarker.setLatLng(position);
       } else {
@@ -1389,7 +1389,7 @@
       window.setTimeout(() => hospitalRegistrationMap.invalidateSize(), 0);
     }
 
-    const priorityMeta = {
+    document.getElementById('pickHospitalLocation').addEventListener('click', () => {       const coordinates = parseMapCoordinates(document.getElementById('hospitalAddress').value);       const center = coordinates || { latitude: 20.5937, longitude: 78.9629 };       const locationStatus = document.getElementById('hospitalLocationStatus');       const registrationStatus = document.getElementById('hospitalRegisterStatus');        try {         openHospitalRegistrationMap(center.latitude, center.longitude, coordinates ? 17 : 5);         document.getElementById('hospitalMapPinHint').textContent =           coordinates             ? 'Confirm the hospital entrance by clicking the map or dragging the pin.'             : 'Pan and zoom to the hospital, then click its entrance or drag the pin there.';         locationStatus.textContent = 'Select the hospital entrance on the map to set its location.';         locationStatus.hidden = false;         registrationStatus.textContent = 'Choose the hospital entrance on the map before submitting.';         registrationStatus.classList.add('location-confirmation');         registrationStatus.hidden = false;       } catch (error) {         locationStatus.textContent = error.message;         locationStatus.hidden = false;       }     });      const priorityMeta = {
       critical: { label: 'Critical', className: 'priority-critical' },
       high: { label: 'High', className: 'priority-high' },
       medium: { label: 'Medium', className: 'priority-medium' },
