@@ -57,7 +57,7 @@ async function sendRegistrationOtpEmail(email, otp) {
   const sender = process.env.SMTP_FROM;
   if (!smtpHost || !Number.isInteger(smtpPort) || smtpPort < 1 || smtpPort > 65535
     || !smtpUser || !smtpPassword || !sender) {
-    throw Object.assign(new Error('Email verification is not configured. Set the SMTP settings in your .env file.'), { statusCode: 503 });
+    throw Object.assign(new Error('Email verification is not configured. Set SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, and SMTP_FROM in the service environment variables.'), { statusCode: 503 });
   }
 
   const transporter = nodemailer.createTransport({
