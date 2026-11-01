@@ -77,7 +77,11 @@ async function sendRegistrationOtpEmail(email, otp) {
     })
   });
   if (!tokenResponse.ok) {
-    throw Object.assign(new Error(`Google email authentication failed (HTTP ${tokenResponse.status}).`), {
+    const tokenError = await tokenResponse.json();
+    const errorCode = typeof tokenError.error === 'string' ? tokenError.error : 'unknown_error';
+    throw Object.assign(new Error(
+      `Google email authentication failed (HTTP ${tokenResponse.status}, ${errorCode}).`
+    ), {
       statusCode: 502
     });
   }
