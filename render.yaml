@@ -3,27 +3,28 @@ services:
     name: roadrescue
     runtime: node
     plan: free
-    buildCommand: npm ci --omit=dev
+    buildCommand: >-
+      npm ci --omit=dev && if [ -f style.css ]; then mkdir -p css js images &&
+      cp style.css css/style.css && cp theme.css css/theme.css &&
+      cp script.js js/script.js && cp home-bg.jpg images/home-bg.jpg &&
+      cp home-bg.jpg images/pages-bg.jpg &&
+      cp logo-transparent.png images/logo-transparent.png; fi
     startCommand: npm start
     healthCheckPath: /api/health
-
-
-
-
     envVars:
       - key: NODE_ENV
         value: production
       - key: NODE_VERSION
         value: 22.20.0
-
-
-
-
-
-
-
-
-
-
+      - key: HOST
+        value: 0.0.0.0
       - key: HOSPITAL_ADMIN_TOKEN
         generateValue: true
+      - key: GMAIL_USER
+        value: malladiblessy@gmail.com
+      - key: GMAIL_CLIENT_ID
+        sync: false
+      - key: GMAIL_CLIENT_SECRET
+        sync: false
+      - key: GMAIL_REFRESH_TOKEN
+        sync: false

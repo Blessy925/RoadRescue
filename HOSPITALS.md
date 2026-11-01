@@ -11,7 +11,21 @@ npm run dev
 
 The app stores hospitals, users, emergency requests, and ambulances in `data/roadrescue.sqlite` by default. Set `ROADRESCUE_DATABASE` to use another SQLite file. On first startup, existing JSON data files are imported; existing hospital passwords are converted to salted scrypt hashes and removed from the legacy hospital file. Previously active facilities are sent to pending review rather than being trusted automatically; the built-in City Hospital demo remains approved.
 
-Hospital registration geocodes the submitted address into latitude and longitude. It uses Google Geocoding when `GOOGLE_MAPS_API_KEY` is set and falls back to OpenStreetMap Nominatim. When only the locality can be found (rather than the exact building), registration asks the user to confirm the hospital entrance on the map before saving. The address form also accepts a Google Maps link containing coordinates. Address geocoding and map tiles therefore need an internet connection.
+Render's free web services use ephemeral storage. Hospital accounts and sign-in details saved in the local SQLite database are lost when a free service spins down, restarts, or redeploys. The free service cannot attach a persistent disk; keeping accounts across restarts requires an external database and an app storage integration. Accounts already lost from an ephemeral instance cannot be recovered from this app and must be registered again.
+
+## Configure registration email on Render
+
+User registration sends verification codes through the Gmail API over HTTPS. SMTP is not used. Configure Google OAuth credentials and then add them to the Render service's **Environment** settings:
+
+1. In Google Cloud Console, create or select a project, enable the Gmail API, and configure the OAuth consent screen. Add the Gmail account as a test user if the consent screen is in testing mode.
+2. Create an OAuth client ID and configure its redirect URI as `https://developers.google.com/oauthplayground`.
+3. Open Google OAuth Playground's settings, enable **Use your own OAuth credentials**, and enter the OAuth client ID and secret.
+4. Authorize the scope `https://www.googleapis.com/auth/gmail.send` with the Gmail account that will send verification mail, exchange the authorization code, and copy the refresh token.
+5. In Render → `roadrescue` → **Environment**, set `GMAIL_CLIENT_ID`, `GMAIL_CLIENT_SECRET`, and `GMAIL_REFRESH_TOKEN` to the OAuth values. `GMAIL_USER` is configured as `malladiblessy@gmail.com`; it must match the Google account used for authorization. Save and deploy.
+
+Keep the OAuth client secret and refresh token private; never commit them to GitHub. Email requests time out after 10 seconds if Google's API cannot be reached.
+
+Hospital registration geocodes the submitted address into latitude and longitude. It uses Google Geocoding when `GOOGLE_MAPS_API_KEY` is set and falls back to OpenStreetMap Nominatim. When only the locality can be found (rather than the exact building), registration asks the user to confirm the hospital entrance on the map before saving. If address lookup cannot find the location, use **Choose hospital location on map** to place the pin manually. The address form also accepts a Google Maps link containing coordinates. Address geocoding and map tiles therefore need an internet connection.
 
 ## Register and approve hospitals
 

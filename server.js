@@ -3,10 +3,8 @@ const fs = require('node:fs/promises');
 const http = require('node:http');
 const path = require('node:path');
 const { DatabaseSync } = require('node:sqlite');
-const tls = require('node:tls');
 const { promisify } = require('node:util');
 require('dotenv').config();
-const nodemailer = require('nodemailer');
 
 const ROOT = __dirname;
 const scrypt = promisify(crypto.scrypt);
@@ -19,9 +17,6 @@ const AMBULANCES_FILE = process.env.AMBULANCES_FILE || path.join(DATA_DIRECTORY,
 const PORT = Number(process.env.PORT || 8000);
 const HOST = process.env.HOST || '0.0.0.0';
 const MAX_BODY_BYTES = 6 * 1024 * 1024;
-const systemCaCertificates = typeof tls.getCACertificates === 'function'
-  ? tls.getCACertificates('system')
-  : [];
 const pendingRegistrationOtps = new Map();
 const userSessions = new Map();
 const hospitalSessions = new Map();
@@ -50,30 +45,70 @@ function sendJson(response, statusCode, data) {
 }
 
 async function sendRegistrationOtpEmail(email, otp) {
-  const smtpHost = process.env.SMTP_HOST;
-  const smtpPort = Number(process.env.SMTP_PORT || 587);
-  const smtpUser = process.env.SMTP_USER;
-  const smtpPassword = process.env.SMTP_PASS;
-  const sender = process.env.SMTP_FROM;
-  if (!smtpHost || !Number.isInteger(smtpPort) || smtpPort < 1 || smtpPort > 65535
-    || !smtpUser || !smtpPassword || !sender) {
-    throw Object.assign(new Error('Email verification is not configured. Set SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, and SMTP_FROM in the service environment variables.'), { statusCode: 503 });
+  const gmailUser = process.env.GMAIL_USER;
+  const clientId = process.env.GMAIL_CLIENT_ID;
+  const clientSecret = process.env.GMAIL_CLIENT_SECRET;
+  const refreshToken = process.env.GMAIL_REFRESH_TOKEN;
+  if (!gmailUser || !clientId || !clientSecret || !refreshToken) {
+    throw Object.assign(new Error(
+      'Email verification is not configured. Set GMAIL_USER, GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET, and GMAIL_REFRESH_TOKEN in the service environment variables.'
+    ), { statusCode: 503 });
   }
 
-  const transporter = nodemailer.createTransport({
-    host: smtpHost,
-    port: smtpPort,
-    secure: smtpPort === 465,
-    auth: { user: smtpUser, pass: smtpPassword },
-    tls: { ca: [...tls.rootCertificates, ...systemCaCertificates] }
+  async function googleRequest(url, options) {
+    try {
+      return await fetch(url, { ...options, signal: AbortSignal.timeout(10_000) });
+    } catch (error) {
+      throw Object.assign(new Error('Google email service could not be reached. Please try again.'), {
+        statusCode: 504,
+        cause: error
+      });
+    }
+  }
+
+  const tokenResponse = await googleRequest('https://oauth2.googleapis.com/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      client_id: clientId,
+      client_secret: clientSecret,
+      refresh_token: refreshToken,
+      grant_type: 'refresh_token'
+    })
   });
-  await transporter.sendMail({
-    from: sender,
-    to: email,
-    subject: 'Your RoadRescue verification code',
-    text: `Your RoadRescue verification code is ${otp}. It expires in 10 minutes.`,
-    html: `<p>Your RoadRescue verification code is:</p><p style="font-size:24px;font-weight:bold;letter-spacing:6px">${otp}</p><p>This code expires in 10 minutes.</p>`
+  if (!tokenResponse.ok) {
+    throw Object.assign(new Error(`Google email authentication failed (HTTP ${tokenResponse.status}).`), {
+      statusCode: 502
+    });
+  }
+
+  const tokenData = await tokenResponse.json();
+  if (typeof tokenData.access_token !== 'string' || !tokenData.access_token) {
+    throw Object.assign(new Error('Google did not provide an email access token.'), { statusCode: 502 });
+  }
+
+  const message = [
+    `From: RoadRescue <${gmailUser}>`,
+    `To: ${email}`,
+    'Subject: Your RoadRescue verification code',
+    'MIME-Version: 1.0',
+    'Content-Type: text/plain; charset=UTF-8',
+    '',
+    `Your RoadRescue verification code is ${otp}. It expires in 10 minutes.`
+  ].join('\r\n');
+  const sendResponse = await googleRequest('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${tokenData.access_token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ raw: Buffer.from(message, 'utf8').toString('base64url') })
   });
+  if (!sendResponse.ok) {
+    throw Object.assign(new Error(`Google could not send the verification email (HTTP ${sendResponse.status}).`), {
+      statusCode: 502
+    });
+  }
 }
 
 async function readJsonFile(filePath, fallbackValue = []) {
