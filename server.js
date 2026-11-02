@@ -499,7 +499,7 @@ async function geocodeAddress(address) {
     .filter(Boolean)
     .filter((part, index, parts) => parts.indexOf(part) === index)
     .join(', ');
-  const candidates = [...new Set([address, fallbackQuery]
+  const streetCandidates = addressParts.slice(1).flatMap((part) => [part, part.replace(/\b(?:road|rd|street|st|avenue|ave|lane|ln)\b/gi, ' ').replace(/\s+/g, ' ').trim()]); const candidates = [...new Set([address, ...streetCandidates, fallbackQuery]
     .filter((candidate) => candidate.length >= 3)
     .map((candidate) => /india/i.test(candidate) ? candidate : `${candidate}, India`))];
 
@@ -538,7 +538,7 @@ async function geocodeAddress(address) {
     }
   }
 
-  throw new Error('Could not find this address or locality. Enter a Google Maps link or coordinates, or try a nearby area and set the exact map pin.');
+  throw new Error('We could not find a map point for this address. Add a nearby town or city and try again.');
 }
 
 const reverseGeocodeCache = new Map();
