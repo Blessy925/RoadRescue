@@ -478,15 +478,36 @@ async function geocodeAddress(address) {
     'Chandigarh', 'Dadra and Nagar Haveli and Daman and Diu', 'Delhi', 'Jammu and Kashmir',
     'Ladakh', 'Lakshadweep', 'Puducherry'
   ];
+  const ignoredAddressWords = [
+    'plot', 'opposite', 'opp.', 'near', 'mandal', 'enclave', 'colony',
+    'market', 'street', 'road', 'door', 'flat'
+  ];
+  const isAddressDetail = (part) => (
+    ignoredAddressWords.some((word) => part.toLowerCase().includes(word)) || /^\d/i.test(part)
+  );
+  const localityParts = addressParts.filter((part) => (
+    !isAddressDetail(part)
+    && !stateNames.some((state) => part.toLowerCase() === state.toLowerCase())
+    && !/^india$/i.test(part)
+  ));
+  const facilityNameWords = ['hospital', 'clinic', 'medical', 'health', 'care', 'nursing', 'memorial'];
+  const facilityName = facilityNameWords.some((word) => (addressParts[0] || '').toLowerCase().includes(word));
+  const requestedLocality = localityParts.find((part) => part !== addressParts[0])
+    || (!facilityName ? localityParts[0] : undefined);
   const requestedState = addressParts.find((part) => stateNames.some((state) => (
     part.toLowerCase() === state.toLowerCase()
   )));
   const matchesRequestedState = (resultState) => !requestedState
     || (typeof resultState === 'string'
       && resultState.toLowerCase().includes(requestedState.toLowerCase()));
-  const localityQuery = addressParts.length > 2
-    ? [addressParts[0], ...addressParts.slice(2)].join(', ')
-    : address;
+  const matchesRequestedLocality = (values) => !requestedLocality
+    || values.some((value) => (
+      typeof value === 'string'
+      && value.toLowerCase().includes(requestedLocality.toLowerCase())
+    ));
+  const localityQuery = [...new Set([addressParts[0], ...localityParts])]
+    .filter(Boolean)
+    .join(', ');
 
   if (apiKey && apiKey !== 'YOUR_GOOGLE_MAPS_API_KEY') {
     try {
@@ -497,11 +518,19 @@ async function geocodeAddress(address) {
       if (response.ok) {
         const data = await response.json();
         if (data.status === 'OK' && Array.isArray(data.results) && data.results.length > 0) {
-          const result = data.results.find((item) => matchesRequestedState(
-            item.address_components?.find((component) => (
+          const result = data.results.find((item) => {
+            const components = item.address_components || [];
+            const state = components.find((component) => (
               component.types?.includes('administrative_area_level_1')
-            ))?.long_name
-          ));
+            ))?.long_name;
+            const locality = components
+              .filter((component) => component.types?.some((type) => (
+                ['locality', 'sublocality', 'administrative_area_level_2', 'postal_town', 'neighborhood']
+                  .includes(type)
+              )))
+              .map((component) => component.long_name);
+            return matchesRequestedState(state) && matchesRequestedLocality(locality);
+          });
           if (result) {
             const { lat, lng } = result.geometry.location;
             return {
@@ -535,6 +564,13 @@ async function geocodeAddress(address) {
       const data = await response.json();
       const result = data.features?.find((feature) => (
         matchesRequestedState(feature.properties?.state)
+        && matchesRequestedLocality([
+          feature.properties?.city,
+          feature.properties?.county,
+          feature.properties?.district,
+          feature.properties?.locality,
+          feature.properties?.suburb
+        ])
       ));
       if (result) {
         const [longitude, latitude] = result.geometry.coordinates.map(Number);
@@ -554,10 +590,6 @@ async function geocodeAddress(address) {
     }
   }
 
-  const ignoredAddressWords = ['plot', 'opposite', 'opp.', 'near', 'mandal', 'enclave', 'colony', 'market', 'street', 'road', 'door', 'flat'];
-  const localityParts = addressParts.filter((part) => (
-    !ignoredAddressWords.some((word) => part.toLowerCase().includes(word)) && !/^\d/i.test(part)
-  ));
   const fallbackQuery = [localityParts[0], localityParts.at(-1)]
     .filter(Boolean)
     .filter((part, index, parts) => parts.indexOf(part) === index)
@@ -594,7 +626,20 @@ async function geocodeAddress(address) {
       }
       const data = await response.json();
       if (Array.isArray(data) && data.length > 0) {
-        const result = data.find((item) => matchesRequestedState(item.address?.state));
+        const result = data.find((item) => {
+          const location = item.address || {};
+          return matchesRequestedState(location.state) && matchesRequestedLocality([
+            location.city,
+            location.town,
+            location.village,
+            location.municipality,
+            location.county,
+            location.district,
+            location.suburb,
+            location.city_district,
+            location.hamlet
+          ]);
+        });
         if (!result) continue;
         const latitude = Number(result.lat);
         const longitude = Number(result.lon);
