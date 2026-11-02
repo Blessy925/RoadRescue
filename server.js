@@ -538,7 +538,7 @@ async function geocodeAddress(address) {
             ))?.long_name;
             const locality = components
               .filter((component) => component.types?.some((type) => (
-                ['locality', 'sublocality', 'administrative_area_level_2', 'postal_town', 'neighborhood']
+                ['locality', 'sublocality', 'administrative_area_level_2', 'postal_town', 'neighborhood', 'route']
                   .includes(type)
               )))
               .map((component) => component.long_name);
@@ -587,7 +587,7 @@ async function geocodeAddress(address) {
           feature.properties?.county,
           feature.properties?.district,
           feature.properties?.locality,
-          feature.properties?.suburb
+          feature.properties?.suburb,           feature.properties?.street
         ])
         && matchesRequestedPostcode(feature.properties?.postcode)
       ));
@@ -656,7 +656,7 @@ async function geocodeAddress(address) {
             location.district,
             location.suburb,
             location.city_district,
-            location.hamlet
+            location.hamlet,             location.road
           ]) && matchesRequestedPostcode(location.postcode);
         });
         if (!result) continue;
