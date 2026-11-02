@@ -468,40 +468,113 @@ function hasValidCoordinates(latitude, longitude) {
 
 async function geocodeAddress(address) {
   const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+  const addressParts = address.split(/[\n,]/).map((part) => part.trim()).filter(Boolean);
+  const stateNames = [
+    'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 'Goa',
+    'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka', 'Kerala',
+    'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram', 'Nagaland',
+    'Odisha', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura',
+    'Uttar Pradesh', 'Uttarakhand', 'West Bengal', 'Andaman and Nicobar Islands',
+    'Chandigarh', 'Dadra and Nagar Haveli and Daman and Diu', 'Delhi', 'Jammu and Kashmir',
+    'Ladakh', 'Lakshadweep', 'Puducherry'
+  ];
+  const requestedState = addressParts.find((part) => stateNames.some((state) => (
+    part.toLowerCase() === state.toLowerCase()
+  )));
+  const matchesRequestedState = (resultState) => !requestedState
+    || (typeof resultState === 'string'
+      && resultState.toLowerCase().includes(requestedState.toLowerCase()));
+  const localityQuery = addressParts.length > 2
+    ? [addressParts[0], ...addressParts.slice(2)].join(', ')
+    : address;
 
   if (apiKey && apiKey !== 'YOUR_GOOGLE_MAPS_API_KEY') {
     try {
       const geocodeUrl = new URL('https://maps.googleapis.com/maps/api/geocode/json');
       geocodeUrl.searchParams.set('address', address);
       geocodeUrl.searchParams.set('key', apiKey);
-
       const response = await fetch(geocodeUrl);
       if (response.ok) {
         const data = await response.json();
         if (data.status === 'OK' && Array.isArray(data.results) && data.results.length > 0) {
-          const { lat, lng } = data.results[0].geometry.location;
+          const result = data.results.find((item) => matchesRequestedState(
+            item.address_components?.find((component) => (
+              component.types?.includes('administrative_area_level_1')
+            ))?.long_name
+          ));
+          if (result) {
+            const { lat, lng } = result.geometry.location;
+            return {
+              latitude: Number(lat),
+              longitude: Number(lng),
+              displayName: result.formatted_address,
+              approximate: false
+            };
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Google address lookup failed; trying open geocoding providers:', error.message);
+    }
+  }
+
+  for (const query of new Set([localityQuery, address])) {
+    const photonUrl = new URL('https://photon.komoot.io/api/');
+    photonUrl.searchParams.set('q', query);
+    photonUrl.searchParams.set('limit', '5');
+    photonUrl.searchParams.set('lang', 'en');
+    try {
+      const response = await fetch(photonUrl, {
+        headers: { 'User-Agent': 'RoadRescue/1.0 (hospital address lookup)' },
+        signal: AbortSignal.timeout(7000)
+      });
+      if (!response.ok) {
+        console.error('Photon address lookup failed with HTTP ' + response.status + '.');
+        continue;
+      }
+      const data = await response.json();
+      const result = data.features?.find((feature) => (
+        matchesRequestedState(feature.properties?.state)
+      ));
+      if (result) {
+        const [longitude, latitude] = result.geometry.coordinates.map(Number);
+        if (hasValidCoordinates(latitude, longitude)) {
           return {
-            latitude: Number(lat),
-            longitude: Number(lng),
-            displayName: data.results[0].formatted_address,
-            approximate: false
+            latitude,
+            longitude,
+            displayName: [result.properties.name, result.properties.city || result.properties.state]
+              .filter(Boolean)
+              .join(', ') || query,
+            approximate: query !== address
           };
         }
       }
     } catch (error) {
-      console.error('Google address lookup failed; trying OpenStreetMap:', error.message);
+      console.error('Photon address lookup failed:', error.message);
     }
   }
 
-  const addressParts = address.split(/[,\n]/).map((part) => part.trim()).filter(Boolean);
-  const localityParts = addressParts.filter((part) => !/\b(plot|opposite|opp\.?|near|mandal|enclave|colony|market|street|road|door|flat)\b|^\d/i.test(part));
+  const ignoredAddressWords = ['plot', 'opposite', 'opp.', 'near', 'mandal', 'enclave', 'colony', 'market', 'street', 'road', 'door', 'flat'];
+  const localityParts = addressParts.filter((part) => (
+    !ignoredAddressWords.some((word) => part.toLowerCase().includes(word)) && !/^\d/i.test(part)
+  ));
   const fallbackQuery = [localityParts[0], localityParts.at(-1)]
     .filter(Boolean)
     .filter((part, index, parts) => parts.indexOf(part) === index)
     .join(', ');
-  const streetCandidates = addressParts.slice(1).flatMap((part) => [part, part.replace(/\b(?:road|rd|street|st|avenue|ave|lane|ln)\b/gi, ' ').replace(/\s+/g, ' ').trim()]); const candidates = [...new Set([address, ...streetCandidates, fallbackQuery]
+  const streetCandidates = addressParts.slice(1).flatMap((part) => [
+    part,
+    part.replace(/road|rd|street|st|avenue|ave|lane|ln/gi, ' ').replace(/\s+/g, ' ').trim()
+  ]);
+  const candidates = [...new Set([address, localityQuery, ...streetCandidates, fallbackQuery]
     .filter((candidate) => candidate.length >= 3)
-    .map((candidate) => /india/i.test(candidate) ? candidate : `${candidate}, India`))];
+    .map((candidate) => {
+      let query = candidate;
+      if (requestedState && !query.toLowerCase().includes(requestedState.toLowerCase())) {
+        query += ', ' + requestedState;
+      }
+      return /india/i.test(query) ? query : query + ', India';
+    }))].slice(0, 5);
 
   for (const [index, candidate] of candidates.entries()) {
     if (index > 0) await new Promise((resolve) => setTimeout(resolve, 1100));
@@ -510,25 +583,26 @@ async function geocodeAddress(address) {
     geocodeUrl.searchParams.set('q', candidate);
     geocodeUrl.searchParams.set('limit', '1');
     geocodeUrl.searchParams.set('countrycodes', 'in');
-
     try {
       const response = await fetch(geocodeUrl, {
         headers: { 'User-Agent': 'RoadRescue/1.0 (hospital address lookup)', 'Accept-Language': 'en' },
         signal: AbortSignal.timeout(7000)
       });
       if (!response.ok) {
-        console.error(`OpenStreetMap address lookup failed with HTTP ${response.status}.`);
+        console.error('OpenStreetMap address lookup failed with HTTP ' + response.status + '.');
         continue;
       }
       const data = await response.json();
       if (Array.isArray(data) && data.length > 0) {
-        const latitude = Number(data[0].lat);
-        const longitude = Number(data[0].lon);
+        const result = data.find((item) => matchesRequestedState(item.address?.state));
+        if (!result) continue;
+        const latitude = Number(result.lat);
+        const longitude = Number(result.lon);
         if (hasValidCoordinates(latitude, longitude)) {
           return {
             latitude,
             longitude,
-            displayName: data[0].display_name,
+            displayName: result.display_name,
             approximate: index > 0
           };
         }
