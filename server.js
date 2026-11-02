@@ -482,30 +482,43 @@ async function geocodeAddress(address) {
     'plot', 'opposite', 'opp.', 'near', 'mandal', 'enclave', 'colony',
     'market', 'street', 'road', 'door', 'flat'
   ];
+  const requestedState = stateNames.find((state) => addressParts.some((part) => (
+    part.toLowerCase() === state.toLowerCase()
+    || part.toLowerCase().startsWith(state.toLowerCase() + ' ')
+  )));
+  const requestedPostcode = address.match(/\b\d{6}\b/)?.[0];
+  const isStatePart = (part) => stateNames.some((state) => (
+    part.toLowerCase() === state.toLowerCase()
+    || part.toLowerCase().startsWith(state.toLowerCase() + ' ')
+  ));
   const isAddressDetail = (part) => (
     ignoredAddressWords.some((word) => part.toLowerCase().includes(word)) || /^\d/i.test(part)
   );
   const localityParts = addressParts.filter((part) => (
     !isAddressDetail(part)
-    && !stateNames.some((state) => part.toLowerCase() === state.toLowerCase())
+    && !isStatePart(part)
     && !/^india$/i.test(part)
-  ));
-  const facilityNameWords = ['hospital', 'clinic', 'medical', 'health', 'care', 'nursing', 'memorial'];
-  const facilityName = facilityNameWords.some((word) => (addressParts[0] || '').toLowerCase().includes(word));
+  )).map((part) => part.replace(/\b\d{6}\b/g, '').trim()).filter(Boolean);
+  const facilityName = /\b(hospital|clinic|medical|health|care|nursing|memorial)\b/i.test(addressParts[0] || '');
   const requestedLocality = localityParts.find((part) => part !== addressParts[0])
     || (!facilityName ? localityParts[0] : undefined);
-  const requestedState = addressParts.find((part) => stateNames.some((state) => (
-    part.toLowerCase() === state.toLowerCase()
-  )));
   const matchesRequestedState = (resultState) => !requestedState
     || (typeof resultState === 'string'
       && resultState.toLowerCase().includes(requestedState.toLowerCase()));
+  const matchesRequestedPostcode = (resultPostcode) => !requestedPostcode
+    || !resultPostcode
+    || String(resultPostcode).replace(/\D/g, '') === requestedPostcode;
   const matchesRequestedLocality = (values) => !requestedLocality
     || values.some((value) => (
       typeof value === 'string'
       && value.toLowerCase().includes(requestedLocality.toLowerCase())
     ));
-  const localityQuery = [...new Set([addressParts[0], ...localityParts])]
+  const localityQuery = [...new Set([
+    ...(facilityName ? [addressParts[0]] : []),
+    ...localityParts,
+    requestedState,
+    requestedPostcode
+  ])]
     .filter(Boolean)
     .join(', ');
 
@@ -529,7 +542,12 @@ async function geocodeAddress(address) {
                   .includes(type)
               )))
               .map((component) => component.long_name);
-            return matchesRequestedState(state) && matchesRequestedLocality(locality);
+            const postcode = components.find((component) => (
+              component.types?.includes('postal_code')
+            ))?.long_name;
+            return matchesRequestedState(state)
+              && matchesRequestedLocality(locality)
+              && matchesRequestedPostcode(postcode);
           });
           if (result) {
             const { lat, lng } = result.geometry.location;
@@ -547,7 +565,7 @@ async function geocodeAddress(address) {
     }
   }
 
-  for (const query of new Set([localityQuery, address])) {
+  for (const query of new Set([address, localityQuery])) {
     const photonUrl = new URL('https://photon.komoot.io/api/');
     photonUrl.searchParams.set('q', query);
     photonUrl.searchParams.set('limit', '5');
@@ -571,6 +589,7 @@ async function geocodeAddress(address) {
           feature.properties?.locality,
           feature.properties?.suburb
         ])
+        && matchesRequestedPostcode(feature.properties?.postcode)
       ));
       if (result) {
         const [longitude, latitude] = result.geometry.coordinates.map(Number);
@@ -596,7 +615,7 @@ async function geocodeAddress(address) {
     .join(', ');
   const streetCandidates = addressParts.slice(1).flatMap((part) => [
     part,
-    part.replace(/road|rd|street|st|avenue|ave|lane|ln/gi, ' ').replace(/\s+/g, ' ').trim()
+    part.replace(/\b(?:road|rd|street|st|avenue|ave|lane|ln)\b/gi, ' ').replace(/\s+/g, ' ').trim()
   ]);
   const candidates = [...new Set([address, localityQuery, ...streetCandidates, fallbackQuery]
     .filter((candidate) => candidate.length >= 3)
@@ -638,7 +657,7 @@ async function geocodeAddress(address) {
             location.suburb,
             location.city_district,
             location.hamlet
-          ]);
+          ]) && matchesRequestedPostcode(location.postcode);
         });
         if (!result) continue;
         const latitude = Number(result.lat);
