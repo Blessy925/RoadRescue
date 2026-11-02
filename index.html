@@ -133,16 +133,15 @@
       <label for="hospitalAddress">Hospital address</label>
       <input type="text" id="hospitalAddress" name="address" placeholder="Street, city, state, postal code" autocomplete="street-address" required>
 
-      <button type="button" id="pickHospitalLocation" class="hospital-map-picker-btn">Choose hospital location on map</button>       <div id="hospitalLocationStatus" class="hospital-location-status" role="status" aria-live="polite" hidden></div>
+      <button type="button" id="pickHospitalLocation" class="hospital-map-picker-btn">Locate address on map</button>       <div id="hospitalLocationStatus" class="hospital-location-status" role="status" aria-live="polite" hidden></div>
       <div id="hospitalLocationPicker" class="map-box hospital-registration-map-box" hidden>
-        <div id="hospitalMapPinHint" class="hospital-map-instruction">Select the hospital entrance on the map.</div>
+        <div id="hospitalMapPinHint" class="hospital-map-instruction">Click the hospital entrance on the map to confirm its location.</div>
         <div id="hospitalRegistrationMap" tabindex="-1" aria-label="Click the exact hospital entrance to place its map pin" style="height: 300px;"></div>
       </div>
       <input type="hidden" id="hospitalLatitude" name="latitude">
       <input type="hidden" id="hospitalLongitude" name="longitude">
 
-      <button type="submit" class="submit-btn">Submit for Registration</button>
-      <div id="hospitalRegisterStatus" class="hospital-register-status" role="status" aria-live="polite" hidden></div>
+      <div id="hospitalRegisterStatus" class="hospital-register-status" role="status" aria-live="polite" hidden></div>       <button type="submit" class="submit-btn">Submit for Registration</button>
     </form>
   </section>
 
@@ -1319,7 +1318,7 @@
       if (hospitalRegistrationMarker) {
         hospitalRegistrationMarker.setLatLng([lat, lng]);
       }
-      document.getElementById('hospitalMapPinHint').textContent = 'Location confirmed. Click the map or drag the pin to adjust it.';
+      document.getElementById('hospitalMapPinHint').textContent = 'Location confirmed. Submit to complete registration.';
       const registrationStatus = document.getElementById('hospitalRegisterStatus');
       if (registrationStatus.classList.contains('location-confirmation')) {
         registrationStatus.textContent = 'Location confirmed. Submit to complete registration.';
@@ -1358,7 +1357,7 @@
       document.getElementById('hospitalRegisterStatus').classList.remove('location-confirmation');
     });
 
-    function openHospitalRegistrationMap(latitude, longitude, zoom = 17) {
+    document.getElementById('hospitalAddress').addEventListener('change', locateHospitalAddress);      async function locateHospitalAddress() {       const address = document.getElementById('hospitalAddress').value.trim();       const locateButton = document.getElementById('pickHospitalLocation');       const locationStatus = document.getElementById('hospitalLocationStatus');       try {         if (!address) throw new Error('Enter the hospital address first.');         locateButton.disabled = true;         locationStatus.textContent = 'Finding this address on the map...';         locationStatus.hidden = false;         let location = parseMapCoordinates(address);         let approximate = false;         if (!location) {           const response = await fetch(`/api/geocode?address=${encodeURIComponent(address)}`);           const data = await response.json();           if (!response.ok) throw new Error(data.error || 'Could not find the hospital address.');           location = data.location;           approximate = location.approximate;         }         if (document.getElementById('hospitalAddress').value.trim() !== address) return;         document.getElementById('hospitalLatitude').value = '';         document.getElementById('hospitalLongitude').value = '';         openHospitalRegistrationMap(location.latitude, location.longitude, approximate ? 15 : 17);         locationStatus.textContent = approximate           ? 'Nearby area found. Click the hospital entrance on the map to confirm.'           : 'Address found. Click the hospital entrance on the map to confirm.';         locationStatus.hidden = false;         document.getElementById('hospitalMapPinHint').textContent =           'Click the hospital entrance on the map to confirm its location. You can also drag the pin.';         document.getElementById('hospitalLocationPicker')           .scrollIntoView({ behavior: 'smooth', block: 'center' });       } catch (error) {         if (document.getElementById('hospitalAddress').value.trim() === address) {           locationStatus.textContent = error.message || 'Could not find the hospital address.';           locationStatus.hidden = false;         }       } finally {         locateButton.disabled = false;       }     }      function openHospitalRegistrationMap(latitude, longitude, zoom = 17) {
       const picker = document.getElementById('hospitalLocationPicker');
       picker.hidden = false;
       if (!window.L) {
@@ -1389,7 +1388,7 @@
       window.setTimeout(() => hospitalRegistrationMap.invalidateSize(), 0);
     }
 
-    document.getElementById('pickHospitalLocation').addEventListener('click', () => {       const coordinates = parseMapCoordinates(document.getElementById('hospitalAddress').value);       const center = coordinates || { latitude: 20.5937, longitude: 78.9629 };       const locationStatus = document.getElementById('hospitalLocationStatus');       const registrationStatus = document.getElementById('hospitalRegisterStatus');        try {         openHospitalRegistrationMap(center.latitude, center.longitude, coordinates ? 17 : 5);         document.getElementById('hospitalMapPinHint').textContent =           coordinates             ? 'Confirm the hospital entrance by clicking the map or dragging the pin.'             : 'Pan and zoom to the hospital, then click its entrance or drag the pin there.';         locationStatus.textContent = 'Select the hospital entrance on the map to set its location.';         locationStatus.hidden = false;         registrationStatus.textContent = 'Choose the hospital entrance on the map before submitting.';         registrationStatus.classList.add('location-confirmation');         registrationStatus.hidden = false;       } catch (error) {         locationStatus.textContent = error.message;         locationStatus.hidden = false;       }     });      const priorityMeta = {
+    document.getElementById('pickHospitalLocation').addEventListener('click', locateHospitalAddress);          const priorityMeta = {
       critical: { label: 'Critical', className: 'priority-critical' },
       high: { label: 'High', className: 'priority-high' },
       medium: { label: 'Medium', className: 'priority-medium' },
@@ -1666,41 +1665,7 @@
       try {
         let latitude = document.getElementById('hospitalLatitude').value;
         let longitude = document.getElementById('hospitalLongitude').value;
-        if (!latitude || !longitude) {
-          registrationStatus.textContent = 'Verifying hospital address...';
-          const coordinatesFromAddress = parseMapCoordinates(hospitalAddress);
-          if (coordinatesFromAddress) {
-            setHospitalRegistrationCoordinates(
-              coordinatesFromAddress.latitude,
-              coordinatesFromAddress.longitude
-            );
-          } else {
-            const geocodeResponse = await fetch(
-              `/api/geocode?address=${encodeURIComponent(hospitalAddress)}`
-            );
-            const geocodeData = await geocodeResponse.json();
-            if (!geocodeResponse.ok) {
-              throw new Error(geocodeData.error || 'Could not find the hospital address.');
-            }
-            const { latitude: resolvedLatitude, longitude: resolvedLongitude, approximate } = geocodeData.location;
-            if (approximate) {
-              document.getElementById('hospitalLatitude').value = '';
-              document.getElementById('hospitalLongitude').value = '';
-              document.getElementById('hospitalMapPinHint').textContent =
-                'Select the hospital entrance on the map.';
-              openHospitalRegistrationMap(resolvedLatitude, resolvedLongitude);
-              registrationStatus.textContent = 'We found the area. Select the hospital entrance on the map to continue.';
-              registrationStatus.classList.add('location-confirmation');
-              document.getElementById('hospitalLocationPicker')
-                .scrollIntoView({ behavior: 'smooth', block: 'center' });
-              window.setTimeout(() => document.getElementById('hospitalRegistrationMap').focus(), 400);
-              return;
-            }
-            setHospitalRegistrationCoordinates(resolvedLatitude, resolvedLongitude);
-          }
-          latitude = document.getElementById('hospitalLatitude').value;
-          longitude = document.getElementById('hospitalLongitude').value;
-        }
+        if (!latitude || !longitude) {           await locateHospitalAddress();           return;         }
 
         const hospitalEmail = document.getElementById('hospitalRegisterEmail').value.trim();
         const hospitalPassword = document.getElementById('hospitalRegisterPassword').value;
@@ -1733,7 +1698,7 @@
         hospitalLoginStatus.hidden = false;
         registrationStatus.hidden = true;
       } catch (error) {
-        registrationStatus.textContent = error.message || 'Hospital registration could not be completed.';
+        hospitalLocationStatus.textContent = error.message || 'Could not find the hospital address.';         hospitalLocationStatus.hidden = false;         registrationStatus.textContent = ''; 
         if (/exact hospital pin/i.test(registrationStatus.textContent)) {
           registrationStatus.textContent = 'We found the area. Select the hospital entrance on the map to continue.';
           registrationStatus.classList.add('location-confirmation');
